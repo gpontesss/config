@@ -1,0 +1,27 @@
+[user]
+	email = pontes.guisilva@gmail.com
+	name = gpontesss
+	signinkey = 474255977B1F704C
+
+[alias]
+	merges = "log master.. --oneline --merges --grep='pull request #... from'"
+	adog = log --all --decorate --oneline --graph
+	dog = log --decorate --oneline --graph
+
+[merge]
+	tool = vimdiff
+
+[core]
+	editor = vim
+
+[commit]
+	gpgsign = true
+
+[gpg]
+	program = gpg
+
+[url "git@github.com:tembici/"]
+	insteadOf = tbc:
+
+[url "git@github.com:"]
+	insteadOf = gh:
