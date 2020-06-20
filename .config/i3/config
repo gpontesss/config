@@ -213,7 +213,7 @@ exec_always --no-startup-id hsetroot -cover $HOME/Images/Wallpaper/snow.jpg
 ### Startup execs ###
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
 exec_always --no-startup-id dunst
-exec_always --no-startup-id picom --config ~/.config/picom/picom.conf --experimental-backends -b
+exec_always --no-startup-id picom --experimental-backends &> /tmp/picom.log
 exec --no-startup-id blueman-applet
 
 ### Key bindings ###
