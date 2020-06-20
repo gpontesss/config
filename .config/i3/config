@@ -208,14 +208,19 @@ gaps inner 16
 gaps outer 0
 
 # Wallpaper
-exec_always --no-startup-id hsetroot -cover $HOME/Downloads/snow.jpg
+exec_always --no-startup-id hsetroot -cover $HOME/Images/Wallpaper/snow.jpg
 
 ### Startup execs ###
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
-exec_always --no-startup-id picom
 exec_always --no-startup-id dunst
+exec_always --no-startup-id picom --config ~/.config/picom/picom.conf --experimental-backends -b
+exec --no-startup-id blueman-applet
 
 ### Key bindings ###
+# Screen brightness controls
+bindsym XF86MonBrightnessUp exec $HOME/.scripts/screen-brightness.sh inc 4000
+bindsym XF86MonBrightnessDown exec $HOME/.scripts/screen-brightness.sh dec 4000
+
 # Screen printing
 bindsym --release Print exec maim ~/Pictures/Screenshots/$(date +%Y-%m-%d-%H-%M-%S).png
 bindsym --release Shift+Print exec maim -s ~/Pictures/Screenshots/$(date +%Y-%m-%d-%H-%M-%S).png
