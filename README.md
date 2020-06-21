@@ -24,4 +24,7 @@ for folder in .config/*; do
     mkdir -p ~/$folder
     ln -s $PWD/$folder ~/$folder/  # if want to replace already existing files run with -f flag
 done
+
+# To register alacritty built from git repository as a x-terminal-emulator alternative
+sudo update-alternatives --install $(which x-terminal-emulator) x-terminal-emulator $(which alacritty) 50
 ```
