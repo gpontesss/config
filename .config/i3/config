@@ -83,9 +83,6 @@ bindsym $mod+e layout toggle split
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
 
-# change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
-
 # focus the parent container
 bindsym $mod+a focus parent
 
@@ -190,12 +187,12 @@ set $base0F #d43552
 # class                 border  backgr. text    indicator child_border
 # Basic color configuration using the Base16 variables for windows and borders.
 # Property Name         Border  BG      Text    Indicator Child Border
-client.focused          $base05 $base0D $base00 $base0D $base0C
-client.focused_inactive $base01 $base01 $base05 $base03 $base01
-client.unfocused        $base01 $base00 $base05 $base01 $base01
-client.urgent           $base08 $base08 $base00 $base08 $base08
-client.placeholder      $base00 $base00 $base05 $base00 $base00
-client.background       $base07
+client.focused          $base01 $base05 $base00 $base00 $base05
+client.focused_inactive $base01 $base01 $base05 $base05 $base01
+client.unfocused        $base01 $base01 $base05 $base01 $base01
+client.urgent           $base01 $base05 $base00 $base08 $base05
+client.placeholder      $base01 $base05 $base00 $base00 $base05
+client.background       $base05
 
 new_window none
 
@@ -235,7 +232,7 @@ bindsym $mod+F3 exec xrandr --output HDMI-1-1 --off
 
 bindsym $mod+F7 exec shutdown 0
 
-bindsym $mod+q exec $HOME/.local/bin/switchkb
+bindsym $mod+space exec $HOME/.local/bin/switchkb
 
 bindsym $mod+shift+s move scratchpad
 bindsym $mod+c scratchpad show
