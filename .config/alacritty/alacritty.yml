@@ -419,8 +419,6 @@ cursor:
 # default paste binding:
 #
 # `- { key: V, mods: Control|Shift, action: Paste }`
-key_bindings:
-  - {key: Space, mods: Control|Shift, action: ToggleViMode}
 # Each key binding will specify a:
 #
 # - `key`: Identifier of the key pressed
@@ -555,6 +553,14 @@ key_bindings:
   #- { key: Home,      mods: Shift,   action: ScrollToTop,    mode: ~Alt       }
   #- { key: End,       mods: Shift,   action: ScrollToBottom, mode: ~Alt       }
 
+
+key_bindings:
+  - {key: Space, mods: Control|Shift, action: ToggleViMode}
+  - {key: H, mods: Alt, chars: "\x1b[D"}
+  - {key: J, mods: Alt, chars: "\x1b[B"}
+  - {key: K, mods: Alt, chars: "\x1b[A"}
+  - {key: L, mods: Alt, chars: "\x1b[C"}
+
 #debug:
   # Display the time it takes to redraw each frame.
   #render_timer: false
@@ -575,4 +581,3 @@ key_bindings:
 
   # Print all received window events.
   #print_events: false
-
