@@ -249,5 +249,5 @@ bindsym $mod+z exec --no-startup-id pavucontrol
 assign [class="Code"] $ws2
 
 ### Floating windows ###
-for_window [class="Pavucontrol"] exec notify-send --expire-time=1000 "Summary" "And  my stuff in here"; floating enable
+for_window [class="Pavucontrol"] exec notify-send --expire-time=1000 "Summary" "And  my stuff in here"
 
