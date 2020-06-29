@@ -1,0 +1,20 @@
+#!/bin/sh
+
+LAYOUT=$(setxkbmap -query | sed -nE "s/layout:\s*//p")
+
+case $LAYOUT in
+	"us")
+		setxkbmap -layout br
+		notify-send "Keyboard layout: ABNT"
+		;;
+	"br")
+		setxkbmap -layout us -variant altgr-intl
+		notify-send "Keyboard layout US intl."
+		;;
+	# Default for some messy setup should fallback to regular layout
+	*)
+		setxkbmap -layout br
+		notify-send "Fallback: keyboard layout ABNT"
+	;;
+esac
+
