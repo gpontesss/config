@@ -238,9 +238,11 @@ bindsym $mod+space exec $HOME/.local/bin/switchkb
 bindsym $mod+shift+s move scratchpad
 bindsym $mod+c scratchpad show
 
+bindsym $mod+m move workspace to output left
+
+# Utilities
 bindsym $mod+d exec i3-dmenu-desktop --dmenu='rofi -theme base16-atelier-dune -dmenu -i -font "Noto Sans Mono Bold 14"'
 bindsym $mod+Return exec alacritty
-
 bindsym $mod+z exec --no-startup-id pavucontrol 
 
 ### Window workspace assignments ###
