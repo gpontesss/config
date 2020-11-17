@@ -252,3 +252,6 @@ assign [class="code-oss"] $ws2
 ### Floating windows ###
 # for_window [class="Pavucontrol"] exec notify-send --expire-time=1000 "Summary" "And  my stuff in here"
 
+# Forces dunst config reload
+exec_always killall -q dunst
+

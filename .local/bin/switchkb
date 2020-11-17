@@ -9,7 +9,7 @@ case $LAYOUT in
 		;;
 	"br")
 		setxkbmap -layout us -variant altgr-intl
-		notify-send "Keyboard layout US intl."
+		notify-send "Keyboard layout: US intl."
 		;;
 	# Default for some messy setup should fallback to regular layout
 	*)
