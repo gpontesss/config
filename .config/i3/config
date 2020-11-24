@@ -201,11 +201,13 @@ font pango: NotoSansMono Bold 12
 for_window [class=".*"] title_format "<span> %title</span>"
 
 # gaps
-gaps inner 16
+workspace $ws2 gaps inner 0
+workspace $ws2 gaps outer 0
+gaps inner 20
 gaps outer 0
 
 # Wallpaper
-exec_always --no-startup-id hsetroot -cover $HOME/Images/Wallpaper/snow.jpg
+exec_always --no-startup-id hsetroot -cover $HOME/Images/Wallpaper/mini.jpg
 
 ### Startup execs ###
 exec_always --no-startup-id $HOME/.config/polybar/launch.sh
@@ -241,13 +243,18 @@ bindsym $mod+c scratchpad show
 bindsym $mod+m move workspace to output left
 
 # Utilities
-bindsym $mod+d exec i3-dmenu-desktop --dmenu='rofi -theme base16-atelier-dune -dmenu -i -font "Noto Sans Mono Bold 14"'
+bindsym $mod+d exec i3-dmenu-desktop --dmenu='rofi -dmenu -i -font "Noto Sans Mono Bold 14"'
 bindsym $mod+Return exec alacritty
 bindsym $mod+z exec --no-startup-id pavucontrol 
 
 ### Window workspace assignments ###
 assign [class="Code"] $ws2
 assign [class="code-oss"] $ws2
+assign [class="firefox"] $ws1
+assign [class="spotify"] $ws4
+assign [class="slack"] $ws1
+assign [class="postman"] $ws5
+assign [class="whatsapp*"] $ws3
 
 ### Floating windows ###
 # for_window [class="Pavucontrol"] exec notify-send --expire-time=1000 "Summary" "And  my stuff in here"
