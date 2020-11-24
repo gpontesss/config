@@ -10,7 +10,7 @@ done
 
 echo 
 
-for DOTFILE in .vimrc .Xresources .profile; do
+for DOTFILE in .tmux.conf .vimrc .Xresources .profile; do
     echo "Creating symlink from $SRCDIR/$DOTFILE to $HOME"
     ln -s $SRCDIR/$DOTFILE $HOME/
 done
