@@ -6,6 +6,8 @@ Plug 'preservim/nerdtree'
 Plug 'itchyny/lightline.vim'
 Plug 'morhetz/gruvbox'
 Plug 'airblade/vim-rooter'
+Plug 'junegunn/fzf'
+Plug 'junegunn/fzf.vim'
 
 " Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'sheerun/vim-polyglot'
@@ -17,21 +19,27 @@ Plug 'tpope/vim-fugitive'
 Plug 'jiangmiao/auto-pairs'
 Plug 'lervag/vimtex'
 
+Plug 'tpope/vim-commentary'
+Plug 'junegunn/vim-easy-align'
+
 call plug#end()
 
 set number
 set wildmenu
 
 set expandtab
+set wrap
 set tabstop=4
 set shiftwidth=4
+
+set hidden
 
 syntax on
 filetype on
 
-nmap <leader><leader> :
+nmap <leader><leader> :b#<CR>
 
-set colorcolumn=80
+set colorcolumn=81
 set textwidth=80
 set formatoptions-=t
 
@@ -125,7 +133,7 @@ nmap <leader>gs :Git status -s<CR>
 nmap <leader>ga :vert Git add . -p<CR>
 nmap <leader>gu :Git reset .<CR>
 nmap <leader>gg :vert Git diff --staged<CR>
-nmap <leader>gk :Git checkout 
+nmap <leader>gk :Git checkout
 nmap <leader>gp :Git pull -p<CR>
 
 " Python specific
@@ -142,28 +150,38 @@ autocmd BufEnter *.py set colorcolumn=89
 " ALE
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
-\   'python': [
-\        'isort',
-\        'black',
-\        'remove_trailing_lines',
-\        'trim_whitespace',
-\    ],
+\   'python': ['isort', 'black'],
 \   'go': ['gofmt'],
+\   'javascript': ['prettier'],
+\   'json': ['jq'],
+\   '*': ['remove_trailing_lines', 'trim_whitespace']
 \}
 
-let g:ale_linters = {'go': ['gofmt']}
+let g:ale_linters = {
+\   'markdown': ['proselint']
+\}
 
 " Shortcuts
-nmap <leader>ee :e 
+nmap <leader>ee :e
 nmap <leader>eh :e ~/
 nmap <leader>ec :e ~/.vimrc<CR>
 
+nmap <leader>cy "+y
 nmap <leader>cp "+p
 vmap <leader>cy "+y
 vmap <leader>cp "+p
 
+nmap M :!make<CR>
+
 " Vimtex
 let g:tex_flavor = 'latex'
 
-LightlineReload
+" fzf
+nmap     <C-P>   :GFiles<CR>
+nmap     <C-S-P> :Buffers<CR>
+nmap     <C-F>   :Rg<CR>
+nnoremap <C-S>   :Lines<CR>
 
+vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>
+
+LightlineReload

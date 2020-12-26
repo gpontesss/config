@@ -14,3 +14,4 @@ for DOTFILE in .tmux.conf .vimrc .Xresources .profile; do
     echo "Creating symlink from $SRCDIR/$DOTFILE to $HOME"
     ln -s $SRCDIR/$DOTFILE $HOME/
 done
+
