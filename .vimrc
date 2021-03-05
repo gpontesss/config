@@ -9,20 +9,123 @@ Plug 'airblade/vim-rooter'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 
-" Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'sheerun/vim-polyglot'
-Plug 'dense-analysis/ale', {'do': 'pip install black isort flake8'}
+Plug 'dense-analysis/ale', {'do': 'pip install black isort flake8 python-language-server'}
 
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 
 Plug 'jiangmiao/auto-pairs'
-Plug 'lervag/vimtex'
 
 Plug 'tpope/vim-commentary'
 Plug 'junegunn/vim-easy-align'
 
+Plug 'rhysd/vim-grammarous'
+
+Plug 'ncm2/ncm2'
+Plug 'roxma/nvim-yarp'
+
+" NOTE: you need to install completion sources to get completions. Check
+" our wiki page for a list of sources: https://github.com/ncm2/ncm2/wiki
+Plug 'ncm2/ncm2-bufword'
+Plug 'ncm2/ncm2-path'
+Plug 'ncm2/ncm2-jedi'
+Plug 'oncomouse/ncm2-biblatex'
+Plug 'ncm2/ncm2-go'
+Plug 'ncm2/ncm2-racer'
+Plug 'ncm2/ncm2-syntax'
+Plug 'lervag/vimtex'
+Plug 'ncm2/ncm2-gtags'
+Plug 'jsfaint/gen_tags.vim'
+
 call plug#end()
+
+
+let $GTAGSCONF="/usr/share/gtags/gtags.conf"
+let $GTAGSLABEL="pygments"
+
+" ALE
+
+let g:python3_host_prog = "/usr/bin/python3"
+
+let g:ale_fixers = {
+\   'python': ['isort', 'black'],
+\   'go': ['gofmt'],
+\   'javascript': ['prettier'],
+\   'json': ['jq'],
+\   '*': ['remove_trailing_lines', 'trim_whitespace']
+\}
+
+let g:ale_linters = {
+\   'markdown': ['proselint']
+\}
+
+let g:ale_fix_on_save = 1
+let g:ale_completion_enabled = 1
+let g:ale_completion_autoimport = 1
+let g:ale_lint_on_text_changed = 0
+
+autocmd BufEnter * call ncm2#enable_for_buffer()
+
+" IMPORTANT: :help Ncm2PopupOpen for more information
+set completeopt=noinsert,menuone,noselect
+
+au InsertEnter * call ncm2#enable_for_buffer()
+   au Filetype tex call ncm2#register_source({
+       \ 'name' : 'vimtex-cmds',
+       \ 'priority': 8,
+       \ 'complete_length': -1,
+       \ 'scope': ['tex'],
+       \ 'matcher': {'name': 'prefix', 'key': 'word'},
+       \ 'word_pattern': '\w+',
+       \ 'complete_pattern': g:vimtex#re#ncm2#cmds,
+       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
+       \ })
+   au Filetype tex call ncm2#register_source({
+       \ 'name' : 'vimtex-labels',
+       \ 'priority': 8,
+       \ 'complete_length': -1,
+       \ 'scope': ['tex'],
+       \ 'matcher': {'name': 'combine',
+       \             'matchers': [
+       \               {'name': 'substr', 'key': 'word'},
+       \               {'name': 'substr', 'key': 'menu'},
+       \             ]},
+       \ 'word_pattern': '\w+',
+       \ 'complete_pattern': g:vimtex#re#ncm2#labels,
+       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
+       \ })
+   au Filetype tex call ncm2#register_source({
+       \ 'name' : 'vimtex-files',
+       \ 'priority': 8,
+       \ 'complete_length': -1,
+       \ 'scope': ['tex'],
+       \ 'matcher': {'name': 'combine',
+       \             'matchers': [
+       \               {'name': 'abbrfuzzy', 'key': 'word'},
+       \               {'name': 'abbrfuzzy', 'key': 'abbr'},
+       \             ]},
+       \ 'word_pattern': '\w+',
+       \ 'complete_pattern': g:vimtex#re#ncm2#files,
+       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
+       \ })
+   au Filetype tex call ncm2#register_source({
+       \ 'name' : 'bibtex',
+       \ 'priority': 8,
+       \ 'complete_length': -1,
+       \ 'scope': ['tex'],
+       \ 'matcher': {'name': 'combine',
+       \             'matchers': [
+       \               {'name': 'prefix', 'key': 'word'},
+       \               {'name': 'abbrfuzzy', 'key': 'abbr'},
+       \               {'name': 'abbrfuzzy', 'key': 'menu'},
+       \             ]},
+       \ 'word_pattern': '\w+',
+       \ 'complete_pattern': g:vimtex#re#ncm2#bibtex,
+       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
+       \ })
+
+""""""
 
 set number
 set wildmenu
@@ -37,33 +140,26 @@ set hidden
 syntax on
 filetype on
 
-nmap <leader><leader> :b#<CR>
+
+nmap <silent> <leader>rc :so $MYVIMRC<CR>:echo "Configs refreshed"<CR>
 
 set colorcolumn=81
 set textwidth=80
 set formatoptions-=t
 
 " Navigation
-" nnoremap <silent> <A-S-Tab> :bn<CR>
-nmap     <silent> <S-Tab> :bp<CR>
-
-nmap <silent> <leader>rc :so $MYVIMRC<CR>:echo "Configs refreshed"<CR>
+nmap <silent> <S-Tab> :bp<CR>
+nmap <leader><leader> :b#<CR>
 
 nmap <silent> <S-K> <C-W><C-K>
 nmap <silent> <S-L> <C-W><C-L>
 nmap <silent> <S-J> <C-W><C-J>
 nmap <silent> <S-H> <C-W><C-H>
 
-nmap <silent> <C-K> <C-W><S-K>
-nmap <silent> <C-L> <C-W><S-L>
-nmap <silent> <C-J> <C-W><S-J>
-nmap <silent> <C-H> <C-W><S-H>
-
-" !!! Currently not working
-nnoremap <A-K> res +10<CR>
-nnoremap <A-L> vert res +10<CR>
-nnoremap <A-J> res -10<CR>
-nnoremap <A-H> vert res -10<CR>
+nnoremap <silent> <C-K> :res +5<CR>
+nnoremap <silent> <C-L> :vert res +5<CR>
+nnoremap <silent> <C-J> :res -5<CR>
+nnoremap <silent> <C-H> :vert res -5<CR>
 
 " Tree view
 let g:netrw_banner = 0
@@ -136,30 +232,15 @@ nmap <leader>gg :vert Git diff --staged<CR>
 nmap <leader>gk :Git checkout
 nmap <leader>gp :Git pull -p<CR>
 
-" Python specific
-" Got to have it trigger only nor python, though
-" autocmd BufWritePre *.py silent! execute ':Black'
-" autocmd BufWritePost *.py !isort %
-"
 if has('python3')
     set pyx=3
 endif
+
+
 " Black's line length
+" Hacky for now. maybe use .editorconfig, or something in the future?
 autocmd BufEnter *.py set colorcolumn=89
 
-" ALE
-let g:ale_fix_on_save = 1
-let g:ale_fixers = {
-\   'python': ['isort', 'black'],
-\   'go': ['gofmt'],
-\   'javascript': ['prettier'],
-\   'json': ['jq'],
-\   '*': ['remove_trailing_lines', 'trim_whitespace']
-\}
-
-let g:ale_linters = {
-\   'markdown': ['proselint']
-\}
 
 " Shortcuts
 nmap <leader>ee :e

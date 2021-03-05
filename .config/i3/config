@@ -203,7 +203,7 @@ for_window [class=".*"] title_format "<span> %title</span>"
 # gaps
 workspace $ws2 gaps inner 0
 workspace $ws2 gaps outer 0
-gaps inner 20
+gaps inner 0
 gaps outer 0
 
 # Wallpaper
@@ -245,7 +245,7 @@ bindsym $mod+m move workspace to output left
 # Utilities
 bindsym $mod+d exec i3-dmenu-desktop --dmenu='rofi -dmenu -i -font "Noto Sans Mono Bold 14"'
 bindsym $mod+Return exec alacritty
-bindsym $mod+z exec --no-startup-id pavucontrol 
+bindsym $mod+z exec --no-startup-id pavucontrol
 
 ### Window workspace assignments ###
 assign [class="Code"] $ws2
@@ -261,4 +261,3 @@ assign [class="whatsapp*"] $ws3
 
 # Forces dunst config reload
 exec_always killall -q dunst
-

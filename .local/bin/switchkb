@@ -8,6 +8,10 @@ case $LAYOUT in
 		notify-send "Keyboard layout: ABNT"
 		;;
 	"br")
+		setxkbmap -layout gr
+		notify-send "Keyboard layout: Greek"
+		;;
+    "gr")
 		setxkbmap -layout us -variant altgr-intl
 		notify-send "Keyboard layout: US intl."
 		;;
@@ -17,4 +21,3 @@ case $LAYOUT in
 		notify-send "Fallback: keyboard layout ABNT"
 	;;
 esac
-
