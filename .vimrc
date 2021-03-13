@@ -1,53 +1,44 @@
-let mapleader = ' '
-
 call plug#begin('~/.vim/plugged')
 
-Plug 'preservim/nerdtree'
+" Style and looks
 Plug 'itchyny/lightline.vim'
 Plug 'morhetz/gruvbox'
+Plug 'sheerun/vim-polyglot'
+
+" Enhancing functions
 Plug 'airblade/vim-rooter'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
+Plug 'kevinhwang91/rnvimr'
+Plug 'tpope/vim-commentary'
+Plug 'junegunn/vim-easy-align'
+Plug 'jiangmiao/auto-pairs'
 
-Plug 'sheerun/vim-polyglot'
-Plug 'dense-analysis/ale', {'do': 'pip install black isort flake8 python-language-server'}
-
+" Git
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 
-Plug 'jiangmiao/auto-pairs'
+" Linting
+Plug 'dense-analysis/ale', {'do': 'pip install black isort flake8'}
 
-Plug 'tpope/vim-commentary'
-Plug 'junegunn/vim-easy-align'
-
-Plug 'rhysd/vim-grammarous'
-
-Plug 'ncm2/ncm2'
+"NCM2 related (suggestion/completion)
+Plug 'roxma/vim-hug-neovim-rpc'
 Plug 'roxma/nvim-yarp'
-
-" NOTE: you need to install completion sources to get completions. Check
-" our wiki page for a list of sources: https://github.com/ncm2/ncm2/wiki
+Plug 'ncm2/ncm2'
 Plug 'ncm2/ncm2-bufword'
 Plug 'ncm2/ncm2-path'
-Plug 'ncm2/ncm2-jedi'
-Plug 'oncomouse/ncm2-biblatex'
-Plug 'ncm2/ncm2-go'
-Plug 'ncm2/ncm2-racer'
-Plug 'ncm2/ncm2-syntax'
 Plug 'lervag/vimtex'
-Plug 'ncm2/ncm2-gtags'
-Plug 'jsfaint/gen_tags.vim'
+Plug 'ncm2/ncm2-markdown-subscope'
+
+Plug 'prabirshrestha/vim-lsp'
+Plug 'mattn/vim-lsp-settings'
+Plug 'ncm2/ncm2-vim-lsp'
 
 call plug#end()
 
-
-let $GTAGSCONF="/usr/share/gtags/gtags.conf"
-let $GTAGSLABEL="pygments"
+let mapleader = ' '
 
 " ALE
-
-let g:python3_host_prog = "/usr/bin/python3"
-
 let g:ale_fixers = {
 \   'python': ['isort', 'black'],
 \   'go': ['gofmt'],
@@ -61,9 +52,12 @@ let g:ale_linters = {
 \}
 
 let g:ale_fix_on_save = 1
-let g:ale_completion_enabled = 1
-let g:ale_completion_autoimport = 1
-let g:ale_lint_on_text_changed = 0
+let g:ale_completion_enabled = 0
+
+" NCM2
+let g:lsp_diagnostics_enabled = 0
+let g:lsp_diagnostics_virtual_text_enabled = 0
+let g:python3_host_prog = "/usr/bin/python3"
 
 autocmd BufEnter * call ncm2#enable_for_buffer()
 
@@ -125,7 +119,7 @@ au InsertEnter * call ncm2#enable_for_buffer()
        \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
        \ })
 
-""""""
+""""
 
 set number
 set wildmenu
@@ -161,11 +155,7 @@ nnoremap <silent> <C-L> :vert res +5<CR>
 nnoremap <silent> <C-J> :res -5<CR>
 nnoremap <silent> <C-H> :vert res -5<CR>
 
-" Tree view
-let g:netrw_banner = 0
-let g:netrw_winsize = 25
-let g:netrw_browse_split = 2 " opens files in horizontal split
-let g:netrw_liststyle = 3
+nmap <silent> <leader>dd :LspDefinition<CR>
 
 " Windows and buffers
 " Closes current buffer and goes to previous one
@@ -209,13 +199,6 @@ let g:gruvbox_termcolors=16
 
 colorscheme gruvbox
 
-" NERDTree
-let NERDTreeMapActivateNode='<Tab>'
-let NERDTreeShowHidden=1
-
-nmap <silent> <S-T>      :NERDTreeToggleVCS<CR>
-nmap <silent> <leader>tr <S-T><S-T>
-
 " Mouse window resizing
 set mouse=n
 if !has('nvim')
@@ -241,10 +224,7 @@ endif
 " Hacky for now. maybe use .editorconfig, or something in the future?
 autocmd BufEnter *.py set colorcolumn=89
 
-
 " Shortcuts
-nmap <leader>ee :e
-nmap <leader>eh :e ~/
 nmap <leader>ec :e ~/.vimrc<CR>
 
 nmap <leader>cy "+y
@@ -252,17 +232,16 @@ nmap <leader>cp "+p
 vmap <leader>cy "+y
 vmap <leader>cp "+p
 
-nmap M :!make<CR>
+nmap          M     :!make<CR>
+nmap <silent> <C-e> :RnvimrToggle<CR>
+
+nmap     <C-P> :GFiles<CR>
+nmap     <C-S> :Buffers<CR>
+nmap     <C-F> :Ag<CR>
+
+vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>
 
 " Vimtex
 let g:tex_flavor = 'latex'
-
-" fzf
-nmap     <C-P>   :GFiles<CR>
-nmap     <C-S-P> :Buffers<CR>
-nmap     <C-F>   :Rg<CR>
-nnoremap <C-S>   :Lines<CR>
-
-vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>
 
 LightlineReload
