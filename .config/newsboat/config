@@ -13,3 +13,6 @@ bind-key J next-feed articlelist
 bind-key K prev-feed articlelist
 
 bind-key a toggle-article-read
+
+browser "xdg-open"
+# browser "elinks"
