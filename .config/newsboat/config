@@ -1,0 +1,15 @@
+auto-reload yes
+
+unbind-key h
+unbind-key j
+unbind-key k
+unbind-key l
+
+bind-key j down
+bind-key k up
+bind-key h next articlelist
+bind-key l prev articlelist
+bind-key J next-feed articlelist
+bind-key K prev-feed articlelist
+
+bind-key a toggle-article-read

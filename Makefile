@@ -18,7 +18,7 @@ $(MOUNT)/$(DOTSDIR)/%: $(DOTSABSDIR)/%
 
 .PHONY: clean-dotfiles
 clean-dotfiles:
-	@rm -rf $(DOTS_DST)
+	rm -rf $(DOTS_DST)
 
 .PHONY: clean
 clean: clean-dotfiles
