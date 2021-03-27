@@ -1,0 +1,17 @@
+#!/bin/sh
+
+case "$1" in
+    # delete files
+    "C-d") xargs -I"{}" rm -- "{}";;
+    "r")
+        read FILE
+        DIR=$(dirname "$FILE")
+        echo | dmenu -p "Renaming $FILE to:" | xargs -I"{}" mv -- "$FILE" "$DIR/{}"
+        ;;
+    # copies absolute path to select file to clipboard
+    "C-n")
+        read FILENAME
+        FILENAME=$(readlink -e "$FILENAME")
+        echo -n "$FILENAME" | xclip -sel clip -i
+        notify-send "Copied file name to clipboard"
+esac
