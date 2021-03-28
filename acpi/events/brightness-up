@@ -1,3 +1,2 @@
 event=video/brightnessup BRTUP 00000086 00000000
-action=/etc/acpi/screen-brightness.sh inc 25
-
+action=/etc/acpi/screen-brightness.sh inc 2500
