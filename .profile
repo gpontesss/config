@@ -1,17 +1,12 @@
-alias vim=nvim
-alias nv=nvim
-alias v=nvim
-
-TERM=/usr/bin/alacritty
-SHELL=/bin/bash
-BROWSER=/usr/bin/firefox
-EDITOR=vim
-VISUAL=vim
-
-# TODO: Not really sure if it should be in here
-setxkbmap -layout abnt
+export TERM=xterm-256color
+export SHELL=/bin/bash
+export BROWSER=/usr/bin/firefox
+export EDITOR=/sbin/nvim
+export VISUAL=/sbin/nvim
 
 PATH="/home/gpontesss/.cargo/bin:$PATH"
 PATH="$(go env GOPATH)/bin:$PATH"
 
 export PATH
+
+source $HOME/.bashrc
