@@ -1,0 +1,20 @@
+#!/bin/sh
+
+alias dmenu="dmenu -i -l 10"
+
+getoptions() {
+    PRINTER=$1
+    lpoptions -d "$PRINTER" -l | \
+        sed -rne 's!(\w*/\w*:).*(\*\w*) .*!\1 \2!p'
+}
+
+getoptionvalues() {
+    PRINTER=$1; OPTION=$2
+    lpoptions -l | grep "$OPTION" | cut -d' ' -f2- | tr ' ' '\n'
+}
+
+PRINTER=$(lpstat -e | dmenu -p "Printer")
+OPTION=$(getoptions "$PRINTER" | dmenu -p "Option" | grep -o "^\w*")
+VALUE=$(getoptionvalues "$PRINTER" "$OPTION" | dmenu -p "$OPTION")
+
+lpoptions -d "$PRINTER" -o "$OPTION=$VALUE"

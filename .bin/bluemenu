@@ -1,0 +1,40 @@
+#!/bin/sh
+
+alias dmenu="dmenu -l 10 -w 800"
+
+# TODO: notify when previously off
+ensure_on() {
+    bluetoothctl power on
+}
+
+get_device() {
+    DEVICE=$(bluetoothctl devices | cut -d' ' -f2- | dmenu -i)
+    UUID=$(echo "$DEVICE" | cut -d' ' -f1)
+    NAME=$(echo "$DEVICE" | cut -d' ' -f2-)
+    echo "$UUID" "$NAME"
+}
+
+# TODO: description about string format
+connect() {
+    UUID=$1; NAME=$2
+    ensure_on
+    notify-send "Trying to connect to $NAME..."
+    bluetoothctl connect $UUID || (notify-send "Failed to connect" && exit -1)
+    notify-send "Connected to $NAME"
+}
+
+# TODO: description about string format
+disconnect() {
+    UUID=$1; NAME=$2
+    notify-send "Disconnecting from $NAME..."
+    bluetoothctl disconnect $UUID || (notifiy-send "Failed to disconnect"; exit -1)
+    notify-send "Disconnected from $NAME"
+}
+
+ACTION=$(printf "connect\\ndisconnect" | dmenu -i)
+
+case $ACTION in
+    "disconnect")   disconnect $(get_device) ;;
+    "connect")      connect $(get_device) ;;
+    *)              notify-send "bluemenu: invalid option!" ;;
+esac

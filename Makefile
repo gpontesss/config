@@ -1,4 +1,4 @@
-DOTS_SRC = .config
+DOTS_SRC = .config .bin
 DOTS_DST = $(HOME)
 DOTS_TARGETS = $(addprefix $(DOTS_DST)/,$(shell find $(DOTS_SRC) -type f))
 
