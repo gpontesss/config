@@ -236,7 +236,7 @@ nmap          M     :!make<CR>
 nmap <silent> <C-e> :RnvimrToggle<CR>
 nmap <silent> !!    :!!<CR>
 
-nmap     <C-P> :GFiles<CR>
+nmap     <C-P> :GFiles --cached --others<CR>
 nmap     <C-S> :Buffers<CR>
 nmap     <C-F> :Ag<CR>
 
