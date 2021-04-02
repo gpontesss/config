@@ -13,14 +13,12 @@ export VISUAL=/usr/bin/nvim
 export SHELL=/bin/bash
 
 export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_CONFIG_DIRS=/usr/etc/xdg:/etc/xdg
 
-export PANEL_FIFO="/tmp/panel-fifo"
-export BSPWM_SOCKET="/tmp/bspwm-socket"
-export PANEL_HEIGHT=25
-
-export QT_QPA_PLATFORMTHEME="qt5ct"
-export GTK2_RC_FILES="$HOME/.gtkrc-2.0"
+export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
+export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
 
 export TEXMFHOME=$XDG_CONFIG_HOME/texmf
 
