@@ -234,12 +234,11 @@ vmap <leader>cp "+p
 
 nmap          M     :!make<CR>
 nmap <silent> <C-e> :RnvimrToggle<CR>
+nmap <silent> !!    :!!<CR>
 
 nmap     <C-P> :GFiles<CR>
 nmap     <C-S> :Buffers<CR>
 nmap     <C-F> :Ag<CR>
-
-vnoremap // y/\V<C-R>=escape(@",'/\')<CR><CR>
 
 " Vimtex
 let g:tex_flavor = 'latex'
