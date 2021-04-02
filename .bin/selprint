@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Prompts to select area to print and copies it to clipboard
+
+maim -s | xclip -sel clip -t image/png -i
