@@ -16,7 +16,6 @@ case $1 in
 	"inc")
 		NEW_VALUE=$(expr $CURRENT_BRIGHTNESS + $2)
 		[[ $NEW_VALUE -gt $MAX_BRIGHTNESS ]] && NEW_VALUE=$MAX_BRIGHTNESS
-		echo $NEW_VALUE
 		;;
 	"dec")
 		NEW_VALUE=$(expr $CURRENT_BRIGHTNESS - $2)
