@@ -1,7 +1,7 @@
 #Set our umask
 umask 022
 
-PATH="/usr/local/sbin:/usr/local/bin:/usr/bin/core_perl:/usr/bin:$HOME/.config/bspwm/panel:$HOME/.bin"
+PATH="/usr/local/sbin:/usr/local/bin:/usr/bin/core_perl:/usr/bin:$HOME/.config/bspwm/panel:$HOME/.local/bin"
 PATH="/var/lib/snapd/snap/bin:$PATH"
 export PATH
 
