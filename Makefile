@@ -1,4 +1,4 @@
-DOTS_SRC = .config .bin .tmux.conf .Xresources .profile .bashrc
+DOTS_SRC = .config .local .tmux.conf .Xresources .profile .bashrc
 DOTS_DST = $(HOME)
 DOTS_TARGETS = $(addprefix $(DOTS_DST)/,$(shell find $(DOTS_SRC) -type f))
 
