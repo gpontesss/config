@@ -1,5 +1,5 @@
 [main]
-readcurrent = False
+readcurrent = True
 interval = 120
 backend = scg
 wait_for_x = False
@@ -34,4 +34,3 @@ color12 = 5555ff
 color13 = ff55ff
 color14 = 55ffff
 color15 = ffffff
-
