@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -e
+
+usage() {
+    echo "gammactl (inc|dec) number"
+}
+
+castint() {
+    printf "%.0f" "$1"
+}
+
+# Controls screen gamma
+CUR_GAMMA=$(castint "$(cat $XDG_CONFIG_HOME/blugon/current)")
+MIN_GAMMA=1
+MAX_GAMMA=20000
+
+case "$1" in
+    "inc")
+        NEW_GAMMA=$(expr $CUR_GAMMA + $2)
+        [[ $NEW_GAMMA -gt $MAX_GAMMA ]] && NEW_GAMMA=$MAX_GAMMA
+        ;;
+    "dec")
+        NEW_GAMMA=$(expr $CUR_GAMMA - $2)
+        [[ $MIN_GAMA -gt $NEW_GAMMA ]] && NEW_GAMMA=$MIN_GAMMA
+        ;;
+    *) usage ;;
+esac
+
+blugon -S "$NEW_GAMMA"
