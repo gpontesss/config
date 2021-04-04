@@ -1,0 +1,3 @@
+#!/bin/sh
+
+transmission-remote -a "$@" && notify-send "Torrent" "Torrent added."
