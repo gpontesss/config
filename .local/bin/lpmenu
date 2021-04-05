@@ -4,8 +4,7 @@ alias dmenu="dmenu -i -l 10"
 
 getoptions() {
     PRINTER=$1
-    lpoptions -d "$PRINTER" -l | \
-        sed -rne 's!(\w*/\w*:).*(\*\w*) .*!\1 \2!p'
+    lpoptions -d "$PRINTER" -l | sed -rne 's!(\w*/\w*:).*(\*\w*) .*!\1 \2!p'
 }
 
 getoptionvalues() {
@@ -13,8 +12,22 @@ getoptionvalues() {
     lpoptions -l | grep "$OPTION" | cut -d' ' -f2- | tr ' ' '\n'
 }
 
-PRINTER=$(lpstat -e | dmenu -p "Printer")
-OPTION=$(getoptions "$PRINTER" | dmenu -p "Option" | grep -o "^\w*")
-VALUE=$(getoptionvalues "$PRINTER" "$OPTION" | dmenu -p "$OPTION")
+chooseoption() {
+    PRINTER=$1
+    getoptions "$PRINTER" | dmenu -p "Option" | grep -o "^\w*"
+}
 
-lpoptions -d "$PRINTER" -o "$OPTION=$VALUE"
+chooseoptionvalue() {
+    PRINTER=$1; OPTION=$2
+    getoptionvalues "$PRINTER" "$OPTION" | dmenu -p "$OPTION"
+}
+
+PRINTER=$(lpstat -e | dmenu -p "Printer")
+[[ -z "$PRINTER" ]] && exit -1
+while true; do
+    OPTION=$(chooseoption "$PRINTER")
+    [[ -z "$OPTION" ]] && exit -1
+    VALUE=$(chooseoptionvalue "$PRINTER" "$OPTION")
+    [[ -z "$VALUE" ]] && exit -1
+    lpoptions -d "$PRINTER" -o "$OPTION=$VALUE"
+done
