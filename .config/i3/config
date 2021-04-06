@@ -244,6 +244,7 @@ bindsym $mod+m move workspace to output left
 
 # Utilities
 bindsym $mod+d exec i3-dmenu-desktop --dmenu='rofi -dmenu -i -font "Noto Sans Mono Bold 14"'
+bindsym $mod+shift+p exec lpmenu
 bindsym $mod+Return exec alacritty
 bindsym $mod+z exec --no-startup-id pavucontrol
 
