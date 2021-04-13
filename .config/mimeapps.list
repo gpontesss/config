@@ -1,10 +1,10 @@
 [Added Associations]
-text/plain=micro.desktop;libreoffice-writer.desktop;
+text/plain=micro.desktop;
 application/x-shellscript=micro.desktop;
 image/svg+xml=firefox.desktop;
 text/x-scheme=micro.desktop;
 application/xml=firefox.desktop;
-application/pdf=xreader.desktop;libreoffice-draw.desktop;
+application/pdf=xreader.desktop;
 image/png=xviewer.desktop;
 image/jpeg=xviewer.desktop;
 
@@ -12,3 +12,9 @@ image/jpeg=xviewer.desktop;
 text/plain=micro.desktop;
 application/pdf=xreader.desktop;
 x-scheme-handler/magnet=torrent.desktop;
+x-scheme-handler/discord-455712169795780630=discord-455712169795780630.desktop
+text/html=firefox.desktop
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+x-scheme-handler/about=firefox.desktop
+x-scheme-handler/unknown=firefox.desktop
