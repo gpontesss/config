@@ -1,0 +1,4 @@
+#!/bin/sh
+
+hsetroot -cover $HOME/img/wallpaper.png &
+dust &
