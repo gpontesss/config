@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Checks spotifyd status. If it is inactive, starts it before running the client
+# command.
+
+CLIENT="/usr/bin/spt"
+
+spotifydstatus() {
+    systemctl --user status spotifyd \
+        | grep "Active" \
+        | cut -d":" -f2 \
+        | cut -d' ' -f2
+}
+
+if [[ "$(spotifydstatus)" == *inactive* ]]; then
+    systemctl --user start spotifyd
+fi
+
+$CLIENT $@
