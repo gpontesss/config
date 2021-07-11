@@ -44,6 +44,7 @@ let g:ale_fixers = {
 \   'go': ['gofmt'],
 \   'javascript': ['prettier'],
 \   'json': ['jq'],
+\   'dart': ['dartfmt'],
 \   '*': ['remove_trailing_lines', 'trim_whitespace']
 \}
 
@@ -226,6 +227,8 @@ autocmd BufEnter *.py set colorcolumn=89
 
 " Shortcuts
 nmap <leader>ec :e ~/.config/nvim/init.vim<CR>
+
+nmap gp gqap
 
 nmap <leader>cy "+y
 nmap <leader>cp "+p
