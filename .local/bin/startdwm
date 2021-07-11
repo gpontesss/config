@@ -1,7 +1,9 @@
 #!/bin/sh
 
-set -e
+set -o errexit
 
 while true; do
-    dwm || exit -1
+    setsid dwmblocks &
+    dwm
+    killall -q dwmblocks
 done
