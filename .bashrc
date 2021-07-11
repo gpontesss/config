@@ -94,5 +94,6 @@ alias \
 
 alias info="info --vi-keys"
 alias zt="zathura"
+alias spt="startspt"
 
 [[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)
