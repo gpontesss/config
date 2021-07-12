@@ -232,6 +232,8 @@ autocmd BufEnter *.py set colorcolumn=89
 " Shortcuts
 nmap <leader>ec :e ~/.config/nvim/init.vim<CR>
 
+nmap gp gqap
+
 nmap <leader>cy "+y
 nmap <leader>cp "+p
 vmap <leader>cy "+y

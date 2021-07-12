@@ -1,47 +1,38 @@
-#
-# ~/.bashrc
-#
-
 [[ $- != *i* ]] && return
 
-colors() {
-	local fgc bgc vals seq0
+[ -r /usr/share/bash-completion/bash_completion ] \
+    && . /usr/share/bash-completion/bash_completion
 
-	printf "Color escapes are %s\n" '\e[${value};...;${value}m'
-	printf "Values 30..37 are \e[33mforeground colors\e[m\n"
-	printf "Values 40..47 are \e[43mbackground colors\e[m\n"
-	printf "Value  1 gives a  \e[1mbold-faced look\e[m\n\n"
 
-	# foreground colors
-	for fgc in {30..37}; do
-		# background colors
-		for bgc in {40..47}; do
-			fgc=${fgc#37} # white
-			bgc=${bgc#40} # black
-
-			vals="${fgc:+$fgc;}${bgc}"
-			vals=${vals%%;}
-
-			seq0="${vals:+\e[${vals}m}"
-			printf "  %-9s" "${seq0:-(default)}"
-			printf " ${seq0}TEXT\e[m"
-			printf " \e[${vals:+${vals+$vals;}}1mBOLD\e[m"
-		done
-		echo; echo
-	done
+gitbranch() {
+    if git rev-parse --is-inside-work-tree &> /dev/null; then
+        printf "(%s)" "$(git branch --show-current)"
+    fi
 }
 
-[ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+__prompt_command() {
+    local EXIT="$?"                # This needs to be first
+    PS1=""
 
-# Change the window title of X terminals
-case ${TERM} in
-	xterm*|rxvt*|Eterm*|aterm|kterm|gnome*|interix|konsole*)
-		PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\007"'
-		;;
-	screen*)
-		PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\033\\"'
-		;;
-esac
+    local RCol='\[\e[0m\]'
+
+    local Red='\[\e[0;31m\]'
+    local BRed='\[\e[1;31m\]'
+    local BGre='\[\e[1;32m\]'
+    local BBGre='\[\e[1;36m\]'
+    local Yel='\[\e[0;33m\]'
+    local Blu='\[\e[0;34m\]'
+
+    PS1+="${Blu}\u${Red}@${Yel}\h ${BBGre}\w ${Red}$(gitbranch)\n"
+
+    if [ $EXIT != 0 ]; then
+        PS1+="${BRed}>${RCol} "
+    else
+        PS1+="${BGre}>${RCol} "
+    fi
+}
+
+PROMPT_COMMAND=__prompt_command    # Function to generate PS1 after CMDs
 
 use_color=true
 
@@ -61,19 +52,13 @@ match_lhs=""
 
 if ${use_color} ; then
 	# Enable colors for ls, etc.  Prefer ~/.dir_colors #64489
-	if type -P dircolors >/dev/null ; then
-		if [[ -f ~/.dir_colors ]] ; then
-			eval $(dircolors -b ~/.dir_colors)
-		elif [[ -f /etc/DIR_COLORS ]] ; then
-			eval $(dircolors -b /etc/DIR_COLORS)
-		fi
-	fi
-
-	if [[ ${EUID} == 0 ]] ; then
-		PS1='\[\033[01;31m\][\h\[\033[01;36m\] \W\[\033[01;31m\]]\$\[\033[00m\] '
-	else
-		PS1='\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '
-	fi
+	# if type -P dircolors >/dev/null ; then
+	# 	if [[ -f ~/.dir_colors ]] ; then
+	# 		eval $(dircolors -b ~/.dir_colors)
+	# 	elif [[ -f /etc/DIR_COLORS ]] ; then
+	# 		eval $(dircolors -b /etc/DIR_COLORS)
+	# 	fi
+	# fi
 
 	alias ls='ls --color=auto'
 	alias grep='grep --colour=auto'
@@ -102,8 +87,6 @@ shopt -s checkwinsize
 
 shopt -s expand_aliases
 
-# export QT_SELECT=4
-
 # Enable history appending instead of overwriting.  #139609
 shopt -s histappend
 
@@ -113,8 +96,15 @@ alias free='free -m'                      # show sizes in MB
 alias more=less
 
 # for all your nvim needs
-alias vim=nvim \
-    nv=nvim \
-    v=nvim
+alias \
+    vim=/usr/bin/nvim \
+    nv=/usr/bin/nvim \
+    v=/usr/bin/nvim
 
 alias info="info --vi-keys"
+alias zt="zathura"
+alias spt="startspt"
+alias yt="youtube-dl --add-metadata -i"
+alias yta="yt -x -f bestaudio/best"
+
+[[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)

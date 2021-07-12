@@ -4,9 +4,10 @@
 	signinkey = 474255977B1F704C
 
 [alias]
-	merges = "log master.. --oneline --merges --grep='pull request #... from'"
 	adog = log --all --decorate --oneline --graph
 	dog = log --decorate --oneline --graph
+	s = status -s
+	curb = branch --show-current
 
 [merge]
 	tool = vimdiff
@@ -21,7 +22,7 @@
 	program = gpg
 
 [url "git@github.com:tembici/"]
-	insteadOf = tbc:
+	insteadOf = tembici:
 
 [url "git@github.com:"]
 	insteadOf = gh:

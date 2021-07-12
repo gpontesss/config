@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Normalizes a string transliteraing
+
+echo "$@" \
+    | iconv -cf UTF-8 -t ASCII//TRANSLIT \
+    | tr -d '[:punct:]' \
+    | tr '[:upper:]' '[:lower:]' \
+    | tr ' ' '-' \
+    | sed "s/-\+/-/g;s/\(^-\|-\$\)//g"

@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Checks spotifyd status. If it is inactive, starts it before running the client
+# command.
+
+## Usage: startspt [options]
+## Options:
+##      -r, --refresh   Forces a daemon refresh.
+
+set -o errexit
+
+CLIENT="/usr/bin/spt"
+
+usage() {
+    sed -E -ne 's/^##(.*)/\1/p' $0
+    exit -1
+}
+
+spotifydstatus() {
+    systemctl --user status spotifyd \
+        | grep "Active" \
+        | cut -d":" -f2 \
+        | cut -d' ' -f2
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -r|--refresh) REFRESH=y ;;
+        *) echo "Unknown parameter '$1'"; usage ;;
+    esac
+    shift
+done
+
+if [[ "$(spotifydstatus)" == *inactive* ]]; then
+    systemctl --user start spotifyd
+elif [[ "$REFRESH" == "y" ]]; then
+    systemctl --user restart spotifyd
+fi
+
+$CLIENT $@

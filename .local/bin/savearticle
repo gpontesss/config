@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Saves internet article provided a URL from X's clipboard and article name
+# through dmenu.
+
+set -o errexit
+
+BASE="/ext/media"
+
+URL="$(dmenu -p "Enter article URL:")"
+[[ -z "$URL" ]] && exit -1
+
+NAME="$(normstr $(dmenu -p "Getting article from URL '$URL'. Save article as:"))"
+FILE="$BASE/articles/$NAME.txt"
+
+if [[ ! -d "$(dirname $FILE)" ]]; then
+    mkdir -p "$(dirname $FILE)"
+elif [[ -e $FILE ]]; then
+    OPTION="$(printf "Overwrite\nAbort" \
+        | dmenu -p "The file '$FILE' already exists.")"
+    case "$OPTION" in
+        "Abort") notify-send "Aborted article saving"; exit 0 ;;
+        "Overwrite") notify-send "Overwriting article" "Overwriting $FILE article" ;;
+        *) echo "Unknown option '$OPTION'"; exit -1 ;;
+    esac
+fi
+
+notify-send "Downloading article" "Downloading $FILE article..."
+links -dump "$URL" > $FILE
+
+notify-send "Finish article download" "Successfully downloaded article $FILE!"
