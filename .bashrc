@@ -3,15 +3,36 @@
 [ -r /usr/share/bash-completion/bash_completion ] \
     && . /usr/share/bash-completion/bash_completion
 
-# Change the window title of X terminals
-case ${TERM} in
-	xterm*|rxvt*|Eterm*|aterm|kterm|gnome*|interix|konsole*)
-		PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\007"'
-		;;
-	screen*)
-		PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\033\\"'
-		;;
-esac
+
+gitbranch() {
+    if git rev-parse --is-inside-work-tree &> /dev/null; then
+        printf "(%s)" "$(git branch --show-current)"
+    fi
+}
+
+__prompt_command() {
+    local EXIT="$?"                # This needs to be first
+    PS1=""
+
+    local RCol='\[\e[0m\]'
+
+    local Red='\[\e[0;31m\]'
+    local BRed='\[\e[1;31m\]'
+    local BGre='\[\e[1;32m\]'
+    local BBGre='\[\e[1;36m\]'
+    local Yel='\[\e[0;33m\]'
+    local Blu='\[\e[0;34m\]'
+
+    PS1+="${Blu}\u${Red}@${Yel}\h ${BBGre}\w ${Red}$(gitbranch)\n"
+
+    if [ $EXIT != 0 ]; then
+        PS1+="${BRed}>${RCol} "
+    else
+        PS1+="${BGre}>${RCol} "
+    fi
+}
+
+PROMPT_COMMAND=__prompt_command    # Function to generate PS1 after CMDs
 
 use_color=true
 
@@ -29,12 +50,6 @@ match_lhs=""
 	&& match_lhs=$(dircolors --print-database)
 [[ $'\n'${match_lhs} == *$'\n'"TERM "${safe_term}* ]] && use_color=true
 
-gitbranch() {
-    if git rev-parse --is-inside-work-tree &> /dev/null; then
-        printf "(%s)" "$(git branch --show-current)"
-    fi
-}
-
 if ${use_color} ; then
 	# Enable colors for ls, etc.  Prefer ~/.dir_colors #64489
 	# if type -P dircolors >/dev/null ; then
@@ -44,12 +59,6 @@ if ${use_color} ; then
 	# 		eval $(dircolors -b /etc/DIR_COLORS)
 	# 	fi
 	# fi
-
-	if [[ ${EUID} == 0 ]] ; then
-        PS1="\[\033[01;31m\][\h\[\033[01;36m\] \W\[\033[01;31m\]]\$\[\033[00m\] "
-	else
-        PS1="$(tput setaf 4)\u$(tput setaf 1)@$(tput setaf 3)\h $(tput bold)$(tput setaf 6)\w $(tput sgr0)$(tput setaf 1)\$(gitbranch)\n$(tput bold; tput setaf 6)>$(tput sgr0) "
-	fi
 
 	alias ls='ls --color=auto'
 	alias grep='grep --colour=auto'
@@ -95,5 +104,7 @@ alias \
 alias info="info --vi-keys"
 alias zt="zathura"
 alias spt="startspt"
+alias yt="youtube-dl --add-metadata -i"
+alias yta="yt -x -f bestaudio/best"
 
 [[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)
