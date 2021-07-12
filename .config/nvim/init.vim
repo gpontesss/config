@@ -9,7 +9,9 @@ Plug 'sheerun/vim-polyglot'
 Plug 'airblade/vim-rooter'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
-Plug 'kevinhwang91/rnvimr'
+" Plug 'kevinhwang91/rnvimr'
+Plug 'ptzz/lf.vim'
+Plug 'voldikss/vim-floaterm'
 Plug 'tpope/vim-commentary'
 Plug 'junegunn/vim-easy-align'
 Plug 'jiangmiao/auto-pairs'
@@ -44,6 +46,9 @@ let g:ale_fixers = {
 \   'go': ['gofmt'],
 \   'javascript': ['prettier'],
 \   'json': ['jq'],
+\   'typescript': ['prettier'],
+\   'typescriptreact': ['prettier', 'eslint'],
+\   'dart': ['dartfmt'],
 \   '*': ['remove_trailing_lines', 'trim_whitespace']
 \}
 
@@ -233,14 +238,20 @@ vmap <leader>cy "+y
 vmap <leader>cp "+p
 
 nmap          M     :!make<CR>
-nmap <silent> <C-e> :RnvimrToggle<CR>
+" nmap <silent> <C-e> :RnvimrToggle<CR>
+nmap <silent> <C-e> :Lf<CR>
 nmap <silent> !!    :!!<CR>
 
 nmap     <C-P> :GFiles --cached --others<CR>
 nmap     <C-S> :Buffers<CR>
 nmap     <C-F> :Ag<CR>
 
+nnoremap <silent> cn :LspRename<CR>
+
 " Vimtex
 let g:tex_flavor = 'latex'
+
+" Lf
+let g:lf_replace_netrw = 1 " Open lf when vim opens a directory
 
 LightlineReload
