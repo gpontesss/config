@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# function:
+# + queue add
+# + queue remove?
+# + queue status
+# + daemon (ran when system init)
+# + clean
+#
+# general stuff:
+# + notifications
+# + text config
+
+set -o errexit
+
+createifinexistent() {
+    local file="$1"
+    if [[ ! -e "$file" ]]; then
+        echo "Creating '$file'..."
+        touch "$file"
+    fi
+}
+
+# CFG_PATH="$HOME/.config/ytq/"
+DL_DIR="$HOME/dl/ytq"
+
+if [[ ! -d "$DL_DIR" ]]; then
+    echo "Creating '$DL_DIR'..."
+    mkdir -p "$DL_DIR"
+fi
+
+PENDING="$DL_DIR/pending"; createifinexistent "$PENDING"
+COMPLETED="$DL_DIR/completed"; createifinexistent "$COMPLETED"
+
+# TODO: for the daemon some kind of lock is needed
+LOCK=/var/tmp/ytq
+
+if (set -o noclobber; echo "$$" > "$LOCK") 2> /dev/null; then
+    trap "rm -f '$LOCK'; exit $?" INT TERM EXIT
+
+    # initially updates pending to discard completed.
+    comm -23 <(sort "$PENDING") <(sort "$COMPLETED") | sponge "$PENDING"
+
+    tail -f "$PENDING" \
+    | while read URL; do
+        echo "Downloading $URL"
+    done
+
+    rm -f "$LOCK"
+    trap - INT TERM EXIT
+else
+    echo "There's a daemon instance of ytq running already."
+fi
