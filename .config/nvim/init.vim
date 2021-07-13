@@ -128,6 +128,8 @@ au InsertEnter * call ncm2#enable_for_buffer()
 
 set number
 set wildmenu
+set nohlsearch
+set encoding=utf-8
 
 set expandtab
 set wrap
