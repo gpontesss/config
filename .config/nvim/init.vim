@@ -139,6 +139,8 @@ set hidden
 syntax on
 filetype on
 
+" Splits open at the bottom and right
+set splitbelow splitright
 
 nmap <silent> <leader>rc :so $MYVIMRC<CR>:echo "Configs refreshed"<CR>
 
