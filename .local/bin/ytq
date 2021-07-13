@@ -23,6 +23,7 @@ createifinexistent() {
 
 # CFG_PATH="$HOME/.config/ytq/"
 DL_DIR="$HOME/dl/ytq"
+LOCK="/var/tmp/ytq"
 
 if [[ ! -d "$DL_DIR" ]]; then
     echo "Creating '$DL_DIR'..."
@@ -32,9 +33,6 @@ fi
 PENDING="$DL_DIR/pending"; createifinexistent "$PENDING"
 COMPLETED="$DL_DIR/completed"; createifinexistent "$COMPLETED"
 
-# TODO: for the daemon some kind of lock is needed
-LOCK=/var/tmp/ytq
-
 if (set -o noclobber; echo "$$" > "$LOCK") 2> /dev/null; then
     trap "rm -f '$LOCK'; exit $?" INT TERM EXIT
 
@@ -43,7 +41,9 @@ if (set -o noclobber; echo "$$" > "$LOCK") 2> /dev/null; then
 
     tail -f "$PENDING" \
     | while read URL; do
-        echo "Downloading $URL"
+        notify-send "Queueing video" "Queueing $URL video download..."
+        idnum="$(tsp youtube-dl --add-metada -ic -o "$DL_DIR/files/%(title)s.%(ext)s" "$URL")"
+        tsp -D "$idnum" notify-send "Download completed" "Video $URL download successfully completed!"
     done
 
     rm -f "$LOCK"
