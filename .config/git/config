@@ -8,6 +8,8 @@
 	dog = log --decorate --oneline --graph
 	s = status -s
 	curb = branch --show-current
+	c = commit -v
+	ca = commit -v --amend
 
 [merge]
 	tool = vimdiff
