@@ -26,11 +26,11 @@ DL_DIR="/ext/media/ytq"
 LOCK="$DL_DIR/daemon.lock"
 
 # uses its own socket to not mess up other task queues.
-export TS_SOCKET="/var/tmp/ytq.tsp.socket"
+export TS_SOCKET="/var/tmp/ytq.tsp.sock"
 
 usage() {
     [[ -n "$1" ]] && echo -e "$1\n"
-    sed -E -ne 's/^## (.*)/\1/p' $0
+    sed -E -ne 's/^## ?(.*)/\1/p' $0
 }
 
 createifinexistent() {
@@ -50,16 +50,25 @@ PENDING="$DL_DIR/pending"; createifinexistent "$PENDING"
 COMPLETED="$DL_DIR/completed"; createifinexistent "$COMPLETED"
 
 add() {
-    URL=$1
-    if grep -Fxq "$URL" "$COMPLETED"; then
-        echo "'$URL' was downloaded already!"; exit -1
-    elif grep -Fxq "$URL" "$PENDING"; then
-        echo "'$URL' was queued already!"; exit -1
+    local LABEL="$1"; local URL="$2"
+    if [[ -z "$LABEL" ]]; then
+        usage "Label cannot be empty"
+    elif [[ -z "$URL" ]]; then
+        usage "URL cannot be empty"
+    elif echo "$LABEL" | grep -Pq "\t"; then
+       echo "Label cannot contain tabs"
+    elif grep -Pq "^$LABEL\t" <(cat "$COMPLETED" "$PENDING"); then
+        echo "Label '$LABEL' was used already"
+    elif grep -q "$URL$" "$COMPLETED"; then
+        echo "'$URL' was downloaded already"
+    elif grep -q "$URL$" "$PENDING"; then
+        echo "'$URL' was queued already"
     else
-        # appends to pending queue
-        echo "$URL" >> "$PENDING"
+        echo -e "$LABEL\t$URL" >> "$PENDING"
+        echo "Added '$LABEL' ($URL) to pending queue"
+        exit 0
     fi
-    exit 0
+    exit -1
 }
 
 reset() {
@@ -68,6 +77,8 @@ reset() {
 }
 
 daemon() {
+    [[ "$#" -ne 0 ]] && usage "Daemon takes no arguments"
+
     if (set -o noclobber; echo "$$" > "$LOCK") 2> /dev/null; then
         trap "rm -f '$LOCK'; tsp -K; exit $?" INT TERM EXIT
 
@@ -76,22 +87,23 @@ daemon() {
 
         echo "Starting daemon..."
         tail -f "$PENDING" \
-        | while read URL; do
-            notify-send "Queueing video" "Queueing $URL video download..."
+        | while read LABEL URL; do
+            notify-send "Queueing video" "Queueing '$LABEL' video download..."
             idnum="$( \
-                tsp  youtube-dl \
+                tsp -L "$LABEL" youtube-dl \
                     --add-metadata \
                     --ignore-errors \
                     --continue \
                     --output "$DL_DIR/files/%(title)s.%(ext)s" \
                     "$URL" \
             )"
-            (tsp -D "$idnum" bash -c "echo "$URL" >> \"$COMPLETED\"") > /dev/null
+            (tsp -D "$idnum" bash -c \
+                "echo '$LABEL\t$URL' >> '$COMPLETED'") > /dev/null
             (tsp -D "$idnum" notify-send \
                 "Download completed" \
                 "Video $URL download successfully completed!") > /dev/null
 
-            echo "Enqueued '$URL' operations"
+            echo "Enqueued '$LABEL' ($URL) operations"
         done
 
         rm -f "$LOCK"
@@ -103,10 +115,10 @@ daemon() {
 }
 
 case "$1" in
-    daemon) daemon ;;
-    add) add "$2" ;;
+    daemon) shift; daemon "$@" ;;
+    add) shift; add "$@" ;;
     reset) reset ;;
     status) usage "Not implemented yet :(" ;;
-    tsp) shift; tsp $@ ;;
-    *) usage "Unknown command '$1'" ;;
+    tsp) shift; tsp "$@" ;;
+    *) usage "Unknown command '$1'"; exit -1 ;;
 esac
