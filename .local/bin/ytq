@@ -1,4 +1,11 @@
-#!/bin/sh
+#!/bin/bash
+
+## usage: ytq <command> [<args>]
+##
+## commands:
+##   daemon     Starts the daemon. It consumes queue requests and schedules
+##              tasks to download files.
+##   add        Adds an URL to the download queue.
 
 # function:
 # + queue add
@@ -10,44 +17,96 @@
 # general stuff:
 # + notifications
 # + text config
+# + specify only audio/both video and audio
 
 set -o errexit
+
+# TODO: make it configurable
+DL_DIR="/ext/media/ytq"
+LOCK="$DL_DIR/daemon.lock"
+
+# uses its own socket to not mess up other task queues.
+export TS_SOCKET="/var/tmp/ytq.tsp.socket"
+
+usage() {
+    [[ -n "$1" ]] && echo -e "$1\n"
+    sed -E -ne 's/^## (.*)/\1/p' $0
+}
 
 createifinexistent() {
     local file="$1"
     if [[ ! -e "$file" ]]; then
-        echo "Creating '$file'..."
+        echo "Creating '$file'"
         touch "$file"
     fi
 }
 
-# CFG_PATH="$HOME/.config/ytq/"
-DL_DIR="$HOME/dl/ytq"
-LOCK="/var/tmp/ytq"
-
 if [[ ! -d "$DL_DIR" ]]; then
-    echo "Creating '$DL_DIR'..."
+    echo "Creating '$DL_DIR'"
     mkdir -p "$DL_DIR"
 fi
 
 PENDING="$DL_DIR/pending"; createifinexistent "$PENDING"
 COMPLETED="$DL_DIR/completed"; createifinexistent "$COMPLETED"
 
-if (set -o noclobber; echo "$$" > "$LOCK") 2> /dev/null; then
-    trap "rm -f '$LOCK'; exit $?" INT TERM EXIT
+add() {
+    URL=$1
+    if grep -Fxq "$URL" "$COMPLETED"; then
+        echo "'$URL' was downloaded already!"; exit -1
+    elif grep -Fxq "$URL" "$PENDING"; then
+        echo "'$URL' was queued already!"; exit -1
+    else
+        # appends to pending queue
+        echo "$URL" >> "$PENDING"
+    fi
+    exit 0
+}
 
-    # initially updates pending to discard completed.
-    comm -23 <(sort "$PENDING") <(sort "$COMPLETED") | sponge "$PENDING"
+reset() {
+    echo -n > "$PENDING"
+    echo -n > "$COMPLETED"
+}
 
-    tail -f "$PENDING" \
-    | while read URL; do
-        notify-send "Queueing video" "Queueing $URL video download..."
-        idnum="$(tsp youtube-dl --add-metada -ic -o "$DL_DIR/files/%(title)s.%(ext)s" "$URL")"
-        tsp -D "$idnum" notify-send "Download completed" "Video $URL download successfully completed!"
-    done
+daemon() {
+    if (set -o noclobber; echo "$$" > "$LOCK") 2> /dev/null; then
+        trap "rm -f '$LOCK'; tsp -K; exit $?" INT TERM EXIT
 
-    rm -f "$LOCK"
-    trap - INT TERM EXIT
-else
-    echo "There's a daemon instance of ytq running already."
-fi
+        # initially updates pending to discard completed.
+        comm -23 <(sort "$PENDING") <(sort "$COMPLETED") | sponge "$PENDING"
+
+        echo "Starting daemon..."
+        tail -f "$PENDING" \
+        | while read URL; do
+            notify-send "Queueing video" "Queueing $URL video download..."
+            idnum="$( \
+                tsp  youtube-dl \
+                    --add-metadata \
+                    --ignore-errors \
+                    --continue \
+                    --output "$DL_DIR/files/%(title)s.%(ext)s" \
+                    "$URL" \
+            )"
+            (tsp -D "$idnum" bash -c "echo "$URL" >> \"$COMPLETED\"") > /dev/null
+            (tsp -D "$idnum" notify-send \
+                "Download completed" \
+                "Video $URL download successfully completed!") > /dev/null
+
+            echo "Enqueued '$URL' operations"
+        done
+
+        rm -f "$LOCK"
+        tsk -K
+        trap - INT TERM EXIT
+    else
+        echo "There's a daemon instance of ytq running already."
+    fi
+}
+
+case "$1" in
+    daemon) daemon ;;
+    add) add "$2" ;;
+    reset) reset ;;
+    status) usage "Not implemented yet :(" ;;
+    tsp) shift; tsp $@ ;;
+    *) usage "Unknown command '$1'" ;;
+esac
