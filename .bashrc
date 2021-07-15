@@ -4,9 +4,15 @@
     && . /usr/share/bash-completion/bash_completion
 
 
-gitbranch() {
+__gitbranch() {
     if git rev-parse --is-inside-work-tree &> /dev/null; then
         printf "(%s)" "$(git branch --show-current)"
+    fi
+}
+
+__venv() {
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        printf "[%s]" "$(basename "$VIRTUAL_ENV")"
     fi
 }
 
@@ -23,7 +29,7 @@ __prompt_command() {
     local Yel='\[\e[0;33m\]'
     local Blu='\[\e[0;34m\]'
 
-    PS1+="${Blu}\u${Red}@${Yel}\h ${BBGre}\w ${Red}$(gitbranch)\n"
+    PS1+="${BGre}$(__venv) ${Blu}\u${Red}@${Yel}\h ${BBGre}\w ${Red}$(__gitbranch)\n"
 
     if [ $EXIT != 0 ]; then
         PS1+="${BRed}>${RCol} "
