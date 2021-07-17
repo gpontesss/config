@@ -23,6 +23,8 @@ set -o errexit
 
 # TODO: make it configurable
 DL_DIR="/ext/media/ytq"
+PROGRESS_DIR="$DL_DIR/progress"
+DONE_DIR="$DL_DIR/done"
 LOCK="$DL_DIR/daemon.lock"
 
 # uses its own socket to not mess up other task queues.
@@ -41,13 +43,11 @@ createifinexistent() {
     fi
 }
 
-if [[ ! -d "$DL_DIR" ]]; then
-    echo "Creating '$DL_DIR'"
-    mkdir -p "$DL_DIR"
-fi
+# TODO: move conditional creation to top
+mkdir -p "$DL_DIR" "$PROGRESS_DIR" "$DONE_DIR"
 
-PENDING="$DL_DIR/pending"; createifinexistent "$PENDING"
-COMPLETED="$DL_DIR/completed"; createifinexistent "$COMPLETED"
+PENDING="$DL_DIR/pending.dls"; createifinexistent "$PENDING"
+COMPLETED="$DL_DIR/completed.dls"; createifinexistent "$COMPLETED"
 
 add() {
     local LABEL="$1"; local URL="$2"
@@ -94,14 +94,15 @@ daemon() {
                     --add-metadata \
                     --ignore-errors \
                     --continue \
-                    --output "$DL_DIR/files/%(title)s.%(ext)s" \
+                    --output "$PROGRESS_DIR/$LABEL-%(title)s.%(ext)s" \
                     "$URL" \
             )"
             (tsp -D "$idnum" bash -c \
-                "echo '$LABEL\t$URL' >> '$COMPLETED'") > /dev/null
+                "echo -e '$LABEL\t$URL' >> '$COMPLETED'") > /dev/null
+            (tsp -D "$idnum" mv "$PROGRESS_DIR/$LABEL-"* "$DONE_DIR/") > /dev/null
             (tsp -D "$idnum" notify-send \
                 "Download completed" \
-                "Video $URL download successfully completed!") > /dev/null
+                "'$LABEL' download successfully completed!") > /dev/null
 
             echo "Enqueued '$LABEL' ($URL) operations"
         done
