@@ -8,16 +8,14 @@
 ##   add        Adds an URL to the download queue.
 
 # function:
-# + queue add
 # + queue remove?
 # + queue status
-# + daemon (ran when system init)
-# + clean
 #
 # general stuff:
 # + notifications
-# + text config
 # + specify only audio/both video and audio
+
+# TODO: notify errors when download fails
 
 set -o errexit
 
@@ -37,6 +35,11 @@ usage() {
     sed -E -ne 's/^## ?(.*)/\1/p' $0
 }
 
+error() {
+    echo -e "$(tput setaf 1)$1$(tput sgr0)"
+    exit -1
+}
+
 createifinexistent() {
     local file="$1"
     if [[ ! -e "$file" ]]; then
@@ -51,48 +54,93 @@ mkdir -p "$DL_DIR" "$PROGRESS_DIR" "$DONE_DIR"
 PENDING="$DL_DIR/pending.dls"; createifinexistent "$PENDING"
 COMPLETED="$DL_DIR/completed.dls"; createifinexistent "$COMPLETED"
 
+records() {
+    local FILES=""; local COL=""
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+            -c|--completed) FILES="$COMPLETED $FILES" ;;
+            -p|--pending)   FILES="$PENDING $FILES" ;;
+            -l|--labels)    COL=1 ;;
+            -u|--urls)      COL=2 ;;
+            -f|--fmts)      COL=3 ;;
+            *)              error "Unknown argument '$1'" ;;
+        esac
+        shift
+    done
+    if [[ -z "$FILES" ]]; then
+        error "records: no files specified"
+    elif [[ -z "$COL" ]]; then
+        error "records: no column specified"
+    fi
+    cut -d$'\t' -f$COL $FILES
+}
+
 add() {
-    local LABEL="$1"; local URL="$2"
+    local LABEL="$1"
+    local URL="$2"
+    local FMT="audio/video"
+
     if [[ -z "$LABEL" ]]; then
-        usage "Label cannot be empty"
+        usage "Label cannot be empty"; exit -1
     elif [[ -z "$URL" ]]; then
-        usage "URL cannot be empty"
-    elif echo "$LABEL" | grep -Pq "\t"; then
-       echo "Label cannot contain tabs"
-    elif grep -Pq "^$LABEL\t" <(cat "$COMPLETED" "$PENDING"); then
-        echo "Label '$LABEL' was used already"
-    elif grep -q "$URL$" "$COMPLETED"; then
-        echo "'$URL' was downloaded already"
-    elif grep -q "$URL$" "$PENDING"; then
-        echo "'$URL' was queued already"
+        usage "URL cannot be empty"; exit -1
+    elif grep -q $'\t' <(echo "$LABEL"); then
+       error "Label cannot contain tabs"
+    elif grep -q "^$LABEL$" <(records -c -p --labels); then
+        error "Label '$LABEL' was used already"
+    elif grep -q "^$URL$" <(records -c --urls); then
+        error "'$URL' URL was downloaded already"
+    elif grep -q "^$URL$" <(records -p --urls); then
+        error "'$URL' URL was queued already"
     else
-        echo -e "$LABEL\t$URL" >> "$PENDING"
-        echo "Added '$LABEL' ($URL) to pending queue"
+        echo -e "$LABEL\t$URL\t$FMT" >> "$PENDING"
+        echo "Added '$LABEL' $FMT download to pending queue. ($URL)"
         exit 0
     fi
-    exit -1
+    error "Unreachable"
 }
 
 reset() {
+    cat "$COMPLETED" >> "$PENDING"
+    echo -n > "$COMPLETED"
+}
+
+clear() {
     echo -n > "$PENDING"
     echo -n > "$COMPLETED"
 }
 
-# TODO: fail if daemon is not running
+# TODO: fail if daemon is not running, or if download has not yet started.
 logs() {
-    [[ ("$#" -ne 1) || (-z "$1") ]] && usage "Label is required" && exit -1
-    LABEL=$1
+    if [[ ("$#" -ne 1) || (-z "$1") ]]; then
+        usage "Label is required"; exit -1
+    fi
+    local LABEL="$1"
 
-    local OUTFILE="$(
+    tail -n+1 -f "$(
         tsp \
         | grep "$LABEL.download" \
         | sed -E "s/\s+/ /g" \
-        | cut -d' ' -f3)"
-    tail -n+1 -f "$OUTFILE"
+        | cut -d' ' -f3
+    )"
+}
+
+list() {
+    # this is really ugly, but will do for now. not an awk wiz D:
+    # TODO: signal failed entries.
+    column -t \
+        <(echo -e "STATUS\tLABEL\tURL\tFORMAT") \
+        <(sort -u \
+            <(awk '{print "completed\t" $0}' "$COMPLETED") \
+            <(awk '{print "pending\t" $0}' "$PENDING") \
+          | awk -F'\t' '{printf "%s\t%s\t%s\t",$1,$2,$3} !$4{print "audio/video"} $4{print $4}'
+        )
 }
 
 daemon() {
-    [[ "$#" -ne 0 ]] && usage "Daemon takes no arguments"
+    if [[ "$#" -ne 0 ]]; then
+        usage "Daemon takes no arguments"; exit -1
+    fi
 
     if (set -o noclobber; echo "$$" > "$LOCK") 2> /dev/null; then
         trap "rm -f '$LOCK'; tsp -K; exit $?" INT TERM EXIT
@@ -102,10 +150,15 @@ daemon() {
 
         echo "Starting daemon..."
         tail -f "$PENDING" \
-        | while read LABEL URL; do
-        # TODO: PUZZLE: how to get status from completed/pending when queueing
-        # a playlist.
+        | while read LABEL URL FMT; do
+            FLAGS=""
+            if [[ "$FMT" = "audio" ]]; then
+                FLAGS="--extract-audio $FLAGS"
+            fi
+
             notify-send "Queueing video" "Queueing '$LABEL' video download..."
+            # TODO: PUZZLE: how to get status from completed/pending when
+            # queueing a playlist.
             # idnum="$(tsp -L "$LABEL.metadata" \
             #     youtube-dl \
             #     --output "$DL_DIR/metadata/$LABEL.$URL" \
@@ -119,6 +172,7 @@ daemon() {
                 --ignore-errors \
                 --continue \
                 --output "$PROGRESS_DIR/$LABEL.%(title)s.%(ext)s" \
+                $FLAGS \
                 "$URL"
             )" > /dev/null
             (tsp -D "$idnum" -L "$LABEL.move-done" \
@@ -147,11 +201,8 @@ daemon() {
 }
 
 case "$1" in
-    daemon) shift; daemon "$@" ;;
-    add) shift; add "$@" ;;
-    reset) reset ;;
-    status) shift; status "$@" ;;
-    logs) shift; logs "$@" ;;
-    tsp) shift; tsp "$@" ;;
-    *) usage "Unknown command '$1'"; exit -1 ;;
+    daemon|add|reset|clear|status|logs|tsp|records|list)
+        CMD="$1"; shift; $CMD "$@" ;;
+    *)
+        usage "Unknown command '$1'"; exit -1 ;;
 esac
