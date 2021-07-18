@@ -31,7 +31,9 @@ LOCK="$DL_DIR/daemon.lock"
 export TS_SOCKET="/var/tmp/ytq.tsp.sock"
 
 usage() {
-    [[ -n "$1" ]] && echo -e "$1\n"
+    if [[ -n "$1" ]]; then
+        echo -e "$(tput setaf 1)$1$(tput sgr0)\n"
+    fi
     sed -E -ne 's/^## ?(.*)/\1/p' $0
 }
 
@@ -76,6 +78,19 @@ reset() {
     echo -n > "$COMPLETED"
 }
 
+# TODO: fail if daemon is not running
+logs() {
+    [[ ("$#" -ne 1) || (-z "$1") ]] && usage "Label is required" && exit -1
+    LABEL=$1
+
+    local OUTFILE="$(
+        tsp \
+        | grep "$LABEL.download" \
+        | sed -E "s/\s+/ /g" \
+        | cut -d' ' -f3)"
+    tail -n+1 -f "$OUTFILE"
+}
+
 daemon() {
     [[ "$#" -ne 0 ]] && usage "Daemon takes no arguments"
 
@@ -88,21 +103,37 @@ daemon() {
         echo "Starting daemon..."
         tail -f "$PENDING" \
         | while read LABEL URL; do
+        # TODO: PUZZLE: how to get status from completed/pending when queueing
+        # a playlist.
             notify-send "Queueing video" "Queueing '$LABEL' video download..."
-            idnum="$( \
-                tsp -L "$LABEL" youtube-dl \
-                    --add-metadata \
-                    --ignore-errors \
-                    --continue \
-                    --output "$PROGRESS_DIR/$LABEL-%(title)s.%(ext)s" \
-                    "$URL" \
-            )"
-            (tsp -D "$idnum" bash -c \
-                "echo -e '$LABEL\t$URL' >> '$COMPLETED'") > /dev/null
-            (tsp -D "$idnum" mv "$PROGRESS_DIR/$LABEL-"* "$DONE_DIR/") > /dev/null
-            (tsp -D "$idnum" notify-send \
+            # idnum="$(tsp -L "$LABEL.metadata" \
+            #     youtube-dl \
+            #     --output "$DL_DIR/metadata/$LABEL.$URL" \
+            #     --write-info-json \
+            #     --write-annotations \
+            #     --skip-download \
+            #     $URL
+            # )"
+            idnum="$(tsp -L "$LABEL.download" youtube-dl \
+                --add-metadata \
+                --ignore-errors \
+                --continue \
+                --output "$PROGRESS_DIR/$LABEL.%(title)s.%(ext)s" \
+                "$URL"
+            )" > /dev/null
+            (tsp -D "$idnum" -L "$LABEL.move-done" \
+                bash -c \
+                "mv '$PROGRESS_DIR/$LABEL.'* '$DONE_DIR/'"
+            ) > /dev/null
+            (tsp -D "$idnum" -L "$LABEL.add-to-completed" \
+                bash -c \
+                "echo -e '$LABEL\t$URL' >> '$COMPLETED'"
+            ) > /dev/null
+            (tsp -D "$idnum" -L "$LABEL.notification" \
+                notify-send \
                 "Download completed" \
-                "'$LABEL' download successfully completed!") > /dev/null
+                "'$LABEL' download successfully completed!"
+            ) > /dev/null
 
             echo "Enqueued '$LABEL' ($URL) operations"
         done
@@ -119,7 +150,8 @@ case "$1" in
     daemon) shift; daemon "$@" ;;
     add) shift; add "$@" ;;
     reset) reset ;;
-    status) usage "Not implemented yet :(" ;;
+    status) shift; status "$@" ;;
+    logs) shift; logs "$@" ;;
     tsp) shift; tsp "$@" ;;
     *) usage "Unknown command '$1'"; exit -1 ;;
 esac
