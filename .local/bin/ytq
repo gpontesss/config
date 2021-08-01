@@ -27,6 +27,7 @@ LOCK="$DL_DIR/daemon.lock"
 
 # uses its own socket to not mess up other task queues.
 export TS_SOCKET="/var/tmp/ytq.tsp.sock"
+export TS_SLOTS=2
 
 usage() {
     if [[ -n "$1" ]]; then
@@ -55,7 +56,9 @@ PENDING="$DL_DIR/pending.dls"; createifinexistent "$PENDING"
 COMPLETED="$DL_DIR/completed.dls"; createifinexistent "$COMPLETED"
 
 records() {
-    local FILES=""; local COL=""
+    local FILES=""
+    local COL=""
+    local GREP=""
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
             -c|--completed) FILES="$COMPLETED $FILES" ;;
@@ -63,16 +66,18 @@ records() {
             -l|--labels)    COL=1 ;;
             -u|--urls)      COL=2 ;;
             -f|--fmts)      COL=3 ;;
+            -g|--grep)      shift; GREP="$1\n" ;;
             *)              error "Unknown argument '$1'" ;;
         esac
         shift
     done
     if [[ -z "$FILES" ]]; then
-        error "records: no files specified"
-    elif [[ -z "$COL" ]]; then
-        error "records: no column specified"
+        FILES="$COMPLETED $PENDING"  # defaults to all
     fi
-    cut -d$'\t' -f$COL $FILES
+    if [[ -z "$COL" ]]; then
+        COL=1-  # defaults to all fields
+    fi
+    cut -d$'\t' -f$COL $FILES | grep -F "$(printf "$GREP")"
 }
 
 add() {
@@ -113,29 +118,35 @@ clear() {
 
 # TODO: fail if daemon is not running, or if download has not yet started.
 logs() {
-    if [[ ("$#" -ne 1) || (-z "$1") ]]; then
-        usage "Label is required"; exit -1
-    fi
     local LABEL="$1"
+    if [[ -z "$LABEL" ]]; then
+        usage "Label is required"; exit -1
+    elif ! grep -q "$LABEL" <(tasks "running"); then
+        error "No tasks associated with label '$LABEL' are running"
+    fi
+    OUTFILE="$(tsp -o "$LABEL.download")"
+    tail -n+1 -f "$OUTFILE"
+}
 
-    tail -n+1 -f "$(
-        tsp \
-        | grep "$LABEL.download" \
-        | sed -E "s/\s+/ /g" \
-        | cut -d' ' -f3
-    )"
+tasks() {
+    STATUS=$1
+    tsp | awk "\$2==\"$STATUS\"{print}" \
+        | sed -nE "s:.*\[(.*)\..*\].*:\1:pg" \
+        | sort -u
 }
 
 list() {
     # this is really ugly, but will do for now. not an awk wiz D:
     # TODO: signal failed entries.
     # TODO: signal the ones in progress (if multiple).
+
     column -t \
         <(echo -e "STATUS\tLABEL\tURL\tFORMAT") \
-        <(sort -u \
+        <(awk -F'\t' '!_[$2]++' \
+            <(awk '{print "running\t" $0}' <(records -g "$(tasks "running")")) \
             <(awk '{print "completed\t" $0}' "$COMPLETED") \
             <(awk '{print "pending\t" $0}' "$PENDING") \
-          | awk -F'\t' '{printf "%s\t%s\t%s\t",$1,$2,$3} !$4{print "audio/video"} $4{print $4}'
+            | awk -F'\t' '{printf $0; if(!$4) print "\taudio/video"; printf "\n"}'
         )
 }
 
@@ -176,20 +187,20 @@ daemon() {
                 --continue \
                 --output "$PROGRESS_DIR/$LABEL.%(title)s.%(ext)s" \
                 $FLAGS \
-                "$URL"
-            )" > /dev/null
+                "$URL" \
+            )"
             (tsp -D "$idnum" -L "$LABEL.move-done" \
                 bash -c \
-                "mv '$PROGRESS_DIR/$LABEL.'* '$DONE_DIR/'"
+                "mv '$PROGRESS_DIR/$LABEL.'* '$DONE_DIR/'" \
             ) > /dev/null
             (tsp -D "$idnum" -L "$LABEL.add-to-completed" \
                 bash -c \
-                "echo -e '$LABEL\t$URL' >> '$COMPLETED'"
+                "echo -e '$LABEL\t$URL' >> '$COMPLETED'" \
             ) > /dev/null
             (tsp -D "$idnum" -L "$LABEL.notification" \
                 notify-send \
                 "Download completed" \
-                "'$LABEL' download successfully completed!"
+                "'$LABEL' download successfully completed!" \
             ) > /dev/null
 
             echo "Enqueued '$LABEL' ($URL) operations"
@@ -204,7 +215,7 @@ daemon() {
 }
 
 case "$1" in
-    daemon|add|reset|clear|status|logs|tsp|records|list)
+    daemon|add|reset|clear|status|logs|tsp|records|list|tasks)
         CMD="$1"; shift; "$CMD" "$@" ;;
     *)
         usage "Unknown command '$1'"; exit -1 ;;
