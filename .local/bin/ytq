@@ -93,6 +93,7 @@ add() {
     elif grep -q "^$URL$" <(records -p --urls); then
         error "'$URL' URL was queued already"
     else
+        # TODO: parse only audio option
         echo -e "$LABEL\t$URL\t$FMT" >> "$PENDING"
         echo "Added '$LABEL' $FMT download to pending queue. ($URL)"
         exit 0
@@ -128,6 +129,7 @@ logs() {
 list() {
     # this is really ugly, but will do for now. not an awk wiz D:
     # TODO: signal failed entries.
+    # TODO: signal the ones in progress (if multiple).
     column -t \
         <(echo -e "STATUS\tLABEL\tURL\tFORMAT") \
         <(sort -u \
@@ -156,6 +158,7 @@ daemon() {
                 FLAGS="--extract-audio $FLAGS"
             fi
 
+            # TODO: remove failed from pending.
             notify-send "Queueing video" "Queueing '$LABEL' video download..."
             # TODO: PUZZLE: how to get status from completed/pending when
             # queueing a playlist.
@@ -193,7 +196,7 @@ daemon() {
         done
 
         rm -f "$LOCK"
-        tsk -K
+        tsp -K
         trap - INT TERM EXIT
     else
         echo "There's a daemon instance of ytq running already."
@@ -202,7 +205,7 @@ daemon() {
 
 case "$1" in
     daemon|add|reset|clear|status|logs|tsp|records|list)
-        CMD="$1"; shift; $CMD "$@" ;;
+        CMD="$1"; shift; "$CMD" "$@" ;;
     *)
         usage "Unknown command '$1'"; exit -1 ;;
 esac
