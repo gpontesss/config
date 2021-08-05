@@ -58,26 +58,34 @@ COMPLETED="$DL_DIR/completed.dls"; createifinexistent "$COMPLETED"
 records() {
     local FILES=""
     local COL=""
-    local GREP=""
+    local STATUS=""
+    local FLAGS=""
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
             -c|--completed) FILES="$COMPLETED $FILES" ;;
             -p|--pending)   FILES="$PENDING $FILES" ;;
+            -r|--running)   STATUS="running" ;;
             -l|--labels)    COL=1 ;;
             -u|--urls)      COL=2 ;;
             -f|--fmts)      COL=3 ;;
-            -g|--grep)      shift; GREP="$1\n" ;;
+            -g|--grep)      shift; LABELS="$1:" ;;
             *)              error "Unknown argument '$1'" ;;
         esac
         shift
     done
-    if [[ -z "$FILES" ]]; then
-        FILES="$COMPLETED $PENDING"  # defaults to all
+    if [[ -z "$FILES" && -z "$STATUS" ]]; then
+        # defaults to all
+        FILES="$COMPLETED $PENDING"
     fi
     if [[ -z "$COL" ]]; then
         COL=1-  # defaults to all fields
     fi
-    cut -d$'\t' -f$COL $FILES | grep -F "$(printf "$GREP")"
+    if [[ -n "$STATUS" ]]; then
+        cut -d$'\t' -f$COL $COMPLETED $PENDING \
+            | grep -F $(printf "$(tasks 'running')")
+    else
+        cut -d$'\t' -f$COL $FILES $FLAGS
+    fi
 }
 
 add() {
@@ -136,17 +144,12 @@ tasks() {
 }
 
 list() {
-    # this is really ugly, but will do for now. not an awk wiz D:
     # TODO: signal failed entries.
-    # TODO: signal the ones in progress (if multiple).
-
     column -t \
-        <(echo -e "STATUS\tLABEL\tURL\tFORMAT") \
-        <(awk -F'\t' '!_[$2]++' \
-            <(awk '{print "running\t" $0}' <(records -g "$(tasks "running")")) \
+        <(awk -F'\t' 'BEGIN{print "STATUS\tLABEL\tURL\tFORMAT"}; !_[$2]++' \
+            <(awk '{print "running\t" $0}' <(records --running) ) \
             <(awk '{print "completed\t" $0}' "$COMPLETED") \
             <(awk '{print "pending\t" $0}' "$PENDING") \
-            | awk -F'\t' '{printf $0; if(!$4) print "\taudio/video"; printf "\n"}'
         )
 }
 
