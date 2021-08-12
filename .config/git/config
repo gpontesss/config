@@ -10,7 +10,7 @@
 	curb = branch --show-current
 	c = commit -v
 	ca = commit -v --amend
-	ck = ! git checkout $(git branch | fzf)
+	ck = ! git checkout "$(git branch | grep -v '*' | fzf)"
 
 [merge]
 	tool = vimdiff
