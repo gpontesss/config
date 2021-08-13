@@ -30,10 +30,11 @@ $(ACPI_DST)/%: %
 transmission: $(TRANSMISSION_HOME)/settings.json
 
 $(TRANSMISSION_HOME)/settings.json: transmission/settings.json
-	@systemctl stop transmission
+	@-systemctl stop transmission
+	@mkdir -p $(dir $@)
 	@cp "$^" "$@"
 	@chown transmission:transmission "$@"
-	@systemctl start transmission
+	@-systemctl start transmission
 
 .PHONY: clean-dotfiles
 clean-dotfiles:
