@@ -14,4 +14,11 @@ case "$1" in
         FILENAME=$(readlink -e "$FILENAME")
         echo -n "$FILENAME" | xclip -sel clip -i
         notify-send "Copied file name to clipboard"
+        ;;
+    # copies image to clipboard
+    "C-c")
+        read FILE
+        xclip -selection clipboard "$FILE" -t image/png
+        notify-send "Copied image" "Copied '$FILE' to clipboard."
+        ;;
 esac
