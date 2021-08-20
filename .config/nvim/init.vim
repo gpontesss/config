@@ -64,6 +64,7 @@ let g:lsp_diagnostics_enabled = 0
 let g:lsp_diagnostics_virtual_text_enabled = 0
 let g:python3_host_prog = "/usr/bin/python3"
 
+
 autocmd BufEnter * call ncm2#enable_for_buffer()
 
 " IMPORTANT: :help Ncm2PopupOpen for more information
@@ -137,6 +138,7 @@ set tabstop=4
 set shiftwidth=4
 
 set hidden
+set autowrite
 
 syntax on
 filetype on
@@ -227,11 +229,6 @@ nmap <leader>gp :Git pull -p<CR>
 if has('python3')
     set pyx=3
 endif
-
-
-" Black's line length
-" Hacky for now. maybe use .editorconfig, or something in the future?
-autocmd BufEnter *.py set colorcolumn=89
 
 " Shortcuts
 nmap <leader>ec :e ~/.config/nvim/init.vim<CR>

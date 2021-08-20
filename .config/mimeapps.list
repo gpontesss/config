@@ -1,16 +1,18 @@
 [Added Associations]
-text/plain=micro.desktop;
-application/x-shellscript=micro.desktop;
+text/plain=nvim.desktop;
+application/x-shellscript=nvim.desktop;
 image/svg+xml=firefox.desktop;
-text/x-scheme=micro.desktop;
+text/x-scheme=nvim.desktop;
 application/xml=firefox.desktop;
-application/pdf=xreader.desktop;
-image/png=xviewer.desktop;
-image/jpeg=xviewer.desktop;
+application/pdf=org.pwmt.zathura.desktop;
+image/png=sxiv.desktop;
+image/jpeg=sxiv.desktop;
 
 [Default Applications]
-text/plain=micro.desktop;
-application/pdf=xreader.desktop;
+image/png=sxiv.desktop;
+image/jpeg=sxiv.desktop;
+text/plain=nvim.desktop;
+application/pdf=org.pwmt.zathura.desktop;
 x-scheme-handler/magnet=torrent.desktop;
 x-scheme-handler/discord-455712169795780630=discord-455712169795780630.desktop
 text/html=firefox.desktop

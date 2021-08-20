@@ -10,6 +10,7 @@
 	curb = branch --show-current
 	c = commit -v
 	ca = commit -v --amend
+	ck = ! git checkout "$(git branch | grep -v '*' | fzf | xargs)"
 
 [merge]
 	tool = vimdiff
@@ -18,7 +19,7 @@
 	editor = nvim
 
 [commit]
-	gpgsign = true
+	gpgsign = false
 
 [gpg]
 	program = gpg
