@@ -10,3 +10,4 @@ pager:
 aliases:
     co: pr checkout
     selpr: '!gh pr list --state all | awk -F''\t'' ''{print $4,$1,$2}'' | fzf --reverse +s | awk ''{print $2}'''
+    vpr: '!gh selpr | xargs -I{} gh pr view {} --comments'
