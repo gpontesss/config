@@ -27,7 +27,7 @@ LOCK="$DL_DIR/daemon.lock"
 
 # uses its own socket to not mess up other task queues.
 export TS_SOCKET="/var/tmp/ytq.tsp.sock"
-export TS_SLOTS=2
+export TS_SLOTS=4
 
 usage() {
     if [[ -n "$1" ]]; then
@@ -54,6 +54,7 @@ mkdir -p "$DL_DIR" "$PROGRESS_DIR" "$DONE_DIR"
 
 PENDING="$DL_DIR/pending.dls"; createifinexistent "$PENDING"
 COMPLETED="$DL_DIR/completed.dls"; createifinexistent "$COMPLETED"
+FAILED="$DL_DIR/failed.dls"; createifinexistent "$FAILED"
 
 records() {
     local FILES=""
@@ -68,7 +69,6 @@ records() {
             -l|--labels)    COL=1 ;;
             -u|--urls)      COL=2 ;;
             -f|--fmts)      COL=3 ;;
-            -g|--grep)      shift; LABELS="$1:" ;;
             *)              error "Unknown argument '$1'" ;;
         esac
         shift
@@ -81,8 +81,11 @@ records() {
         COL=1-  # defaults to all fields
     fi
     if [[ -n "$STATUS" ]]; then
-        cut -d$'\t' -f$COL $COMPLETED $PENDING \
-            | grep -F $(printf "$(tasks 'running')")
+        TASKS="$(tasks "$STATUS")"
+        if [[ -n "$TASKS" ]]; then
+            cut -d$'\t' -f$COL $COMPLETED $PENDING \
+                | grep -F "$(printf "$TASKS")"
+        fi
     else
         cut -d$'\t' -f$COL $FILES $FLAGS
     fi
@@ -124,7 +127,6 @@ clear() {
     echo -n > "$COMPLETED"
 }
 
-# TODO: fail if daemon is not running, or if download has not yet started.
 logs() {
     local LABEL="$1"
     if [[ -z "$LABEL" ]]; then
@@ -147,10 +149,22 @@ list() {
     # TODO: signal failed entries.
     column -t \
         <(awk -F'\t' 'BEGIN{print "STATUS\tLABEL\tURL\tFORMAT"}; !_[$2]++' \
-            <(awk '{print "running\t" $0}' <(records --running) ) \
+            <(awk '{print "running\t" $0}' <(records --running)) \
+            <(awk '{print "failed\t" $0}' "$FAILED") \
             <(awk '{print "completed\t" $0}' "$COMPLETED") \
             <(awk '{print "pending\t" $0}' "$PENDING") \
         )
+}
+
+_completed-callback() {
+    local LABEL="$1"
+    LOGFILE="$(tsp | grep "$LABEL.download" | awk '{print $3}')"
+    EXITCODE="$(tail -n1 "$LOGFILE" | awk '{print $2}')"
+    if [[ "$EXITCODE" != 0 ]]; then
+        awk -F'\t' '$1=="'$LABEL'"' "$PENDING" >> "$FAILED"
+        notify-send "Video download failed" "Failed to download '$LABEL' video :("
+        error "Failed to download video '$LABEL'"
+    fi
 }
 
 daemon() {
@@ -174,33 +188,32 @@ daemon() {
 
             # TODO: remove failed from pending.
             notify-send "Queueing video" "Queueing '$LABEL' video download..."
-            # TODO: PUZZLE: how to get status from completed/pending when
-            # queueing a playlist.
-            # idnum="$(tsp -L "$LABEL.metadata" \
-            #     youtube-dl \
-            #     --output "$DL_DIR/metadata/$LABEL.$URL" \
-            #     --write-info-json \
-            #     --write-annotations \
-            #     --skip-download \
-            #     $URL
-            # )"
-            idnum="$(tsp -L "$LABEL.download" youtube-dl \
+            # main task in the chain is prevented to fail so next step can be
+            # executed even if it fail. it is needed for checking if it failed
+            # and emitting a notification.
+            idnum="$(tsp -L "$LABEL.download" \
+                bash -c "youtube-dl \
                 --add-metadata \
                 --ignore-errors \
                 --continue \
-                --output "$PROGRESS_DIR/$LABEL.%(title)s.%(ext)s" \
+                --output '$PROGRESS_DIR/$LABEL.%(title)s.%(ext)s' \
                 $FLAGS \
-                "$URL" \
+                '$URL' \
+                || echo 'Exit code:' \$?"
             )"
-            (tsp -D "$idnum" -L "$LABEL.move-done" \
+            # TODO: describe it...
+            callback="$(tsp -D "$idnum" -L "$LABEL.completed-callback" \
+                $0 _completed-callback "$LABEL" \
+            )"
+            (tsp -D "$callback" -L "$LABEL.move-done" \
                 bash -c \
                 "mv '$PROGRESS_DIR/$LABEL.'* '$DONE_DIR/'" \
             ) > /dev/null
-            (tsp -D "$idnum" -L "$LABEL.add-to-completed" \
+            (tsp -D "$callback" -L "$LABEL.add-to-completed" \
                 bash -c \
                 "echo -e '$LABEL\t$URL' >> '$COMPLETED'" \
             ) > /dev/null
-            (tsp -D "$idnum" -L "$LABEL.notification" \
+            (tsp -D "$callback" -L "$LABEL.notification" \
                 notify-send \
                 "Download completed" \
                 "'$LABEL' download successfully completed!" \
@@ -218,7 +231,8 @@ daemon() {
 }
 
 case "$1" in
-    daemon|add|reset|clear|status|logs|tsp|records|list|tasks)
+    "") usage ;;
+    daemon|add|reset|clear|status|logs|tsp|records|list|tasks|_completed-callback)
         CMD="$1"; shift; "$CMD" "$@" ;;
     *)
         usage "Unknown command '$1'"; exit -1 ;;

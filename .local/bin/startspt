@@ -37,4 +37,4 @@ elif [[ "$REFRESH" == "y" ]]; then
     systemctl --user restart spotifyd
 fi
 
-$CLIENT "$@"
+"$CLIENT" "$@"

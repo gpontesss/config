@@ -43,7 +43,7 @@ let mapleader = ' '
 " ALE
 let g:ale_fixers = {
 \   'python': ['isort', 'black'],
-\   'go': ['gofmt'],
+\   'go': ['gofmt', "goimports"],
 \   'javascript': ['prettier'],
 \   'json': ['jq'],
 \   'typescript': ['prettier'],
