@@ -555,7 +555,11 @@ cursor:
 
 
 key_bindings:
-  - {key: Space, mods: Control|Shift, action: ToggleViMode}
+  - { key: Space, mods: Control|Shift, action: ToggleViMode }
+  - { key: K,     mods: Control,       chars: "\u001b[A"    }
+  - { key: J,     mods: Control,       chars: "\u001b[B"    }
+  - { key: H,     mods: Control,       chars: "\u001b[D"    }
+  - { key: L,     mods: Control,       chars: "\u001b[C"    }
 
 #debug:
   # Display the time it takes to redraw each frame.
