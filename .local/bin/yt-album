@@ -1,0 +1,15 @@
+#!/bin/sh
+
+DEST="$HOME/Music"
+
+# videos are kept so that "continue" has the desired effect.
+youtube-dl \
+	--extract-audio \
+	--audio-quality 0 \
+	--add-metadata \
+	--keep-video \
+	--audio-format mp3 \
+	--retries "infinite" \
+	--output "$DEST/%(playlist_title)s/%(playlist_index)s-%(title)s.%(ext)s" \
+	--continue \
+	"$@"
