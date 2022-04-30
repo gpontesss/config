@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# docs here.
+# TODO: src document language option
+
+set -o errexit
+export TMPDIR="${TMPDIR:-/tmp}"
+
+itouch() { touch "$1"; echo "$1"; }
+imkdir() { mkdir -p "$1"; echo "$1"; }
+
+
+pdf="$1"
+outfile="$2"
+
+if [[ -z "$outfile" || -z "$pdf" ]]; then
+    echo "Source file and out file are required"; exit 1
+fi
+
+# WORKDIR can come from the environment.
+# unless explicitly specified, tries to find an already started run to continue
+# from last state.
+WORKDIR="${WORKDIR:-$(find "$TMPDIR" -type d -name "bookext.$pdf.*" 2> /dev/null)}"
+if [ -z "$WORKDIR" ]; then
+    tmpworkdir="y"
+    # TODO: seems to have some errors in here.
+    WORKDIR="$(mktemp -p "$TMPDIR" -d "bookext.$pdf.XXX")"
+fi
+echo "Using working directory '$WORKDIR'"
+
+imgsdir="$(imkdir "$WORKDIR/imgs")"
+pagesdir="$(imkdir "$WORKDIR/pages")"
+
+pages_processed="$(itouch "$WORKDIR/pages_processed")"
+imgs_extracted="$WORKDIR/imgs_extracted"
+
+# checks if images were already fully extracted, to avoid useless processing and
+# resume of ongoing work.
+if [ ! -e "$imgs_extracted" ]; then
+    echo "Extracting PDF images from '$pdf'"
+    pdfimages -p "$pdf" "$imgsdir/"
+    touch "$imgs_extracted"
+    echo "Done extracting images"
+else
+    echo "Images already extracted"
+    echo "Resuming text extractation"
+fi
+
+# filters pending images that still need to be processed, if file has already
+# started to be processed.
+imgs="$(
+    comm -23 \
+    <(find ~+ -type f -path "*/imgs/*" | sort) \
+    <(sort "$pages_processed"))"
+
+for img in $imgs; do
+    img="$(realpath "$img")"
+    basename="$(basename "$img")"
+    page="$(realpath "$pagesdir/${basename%.*}.txt")"
+
+    tesseract -l eng -c debug_file=/dev/null "$img" stdout quiet > "$page"
+
+    # TODO: exclude whitespaces, but have confirmation after of whitespace
+    # pages, to check if no text is missing.
+    # if [ -z "$(sed -e "/[[:space:]]/d" "$page")" ]; then
+    #     echo "Ignoring empty page ($img)"
+    echo "Processing page ($page)"
+
+    # TODO: abort if exit with bad code
+    "${EDITOR:-nano}" "$page"
+
+    echo "$img" >> "$pages_processed"
+done
+
+
+echo "Writing integral text to target file"
+cat "$pagesdir/"* > "$outfile"
+
+if [ -n "$tmpworkdir" ]; then
+    rm -rf "$workdir"
+else
+    rm -rf "$pagesdir" "$imgsdir" "$imgs_extracted" "$pages_processed"
+fi
