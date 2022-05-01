@@ -2,13 +2,19 @@ call plug#begin('~/.vim/plugged')
 
 " Style and looks
 Plug 'itchyny/lightline.vim'
+" gruvbox color theme
 Plug 'morhetz/gruvbox'
+" adds syntax highlight to many file formats
 Plug 'sheerun/vim-polyglot'
 
 " Enhancing functions
 Plug 'airblade/vim-rooter'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
+<<<<<<< HEAD
+=======
+Plug 'tpope/vim-eunuch'
+>>>>>>> origin/macos
 Plug 'ptzz/lf.vim'
 Plug 'voldikss/vim-floaterm'
 Plug 'tpope/vim-commentary'
@@ -35,17 +41,28 @@ Plug 'prabirshrestha/vim-lsp'
 Plug 'mattn/vim-lsp-settings'
 Plug 'ncm2/ncm2-vim-lsp'
 
+<<<<<<< HEAD
 " golang
 Plug 'benmills/vimux'
 Plug 'sebdah/vim-delve'
 
 Plug 'tpope/vim-dispatch'
+=======
+" clojure
+" Plug 'guns/vim-clojure-static'
+Plug 'tpope/vim-fireplace'
+Plug 'frazrepo/vim-rainbow'
+Plug 'tpope/vim-dispatch'
+Plug 'tpope/vim-salve'
+>>>>>>> origin/macos
 
 call plug#end()
 
-let mapleader = ' '
+" =======================
+" LSP, linting and fixing
+" =======================
 
-" ALE
+let g:ale_fix_on_save = 1
 let g:ale_fixers = {
 \   'python': ['isort', 'black'],
 \   'go': ['gofmt', "goimports"],
@@ -54,91 +71,51 @@ let g:ale_fixers = {
 \   'typescript': ['prettier'],
 \   'typescriptreact': ['prettier', 'eslint'],
 \   'dart': ['dartfmt'],
-\   '*': ['remove_trailing_lines', 'trim_whitespace']
-\}
+\   '*': ['remove_trailing_lines', 'trim_whitespace'],
+\ }
 
-let g:ale_linters = {
-\   'markdown': ['proselint']
-\}
-
-let g:ale_fix_on_save = 1
-let g:ale_completion_enabled = 0
-
-" NCM2
 let g:lsp_diagnostics_enabled = 0
 let g:lsp_diagnostics_virtual_text_enabled = 0
+<<<<<<< HEAD
 " let g:python3_host_prog = system("which python3")
+=======
+let g:ale_linters = {
+\   'markdown': ['proselint'],
+\ }
+>>>>>>> origin/macos
 
+" completion should be done with LSP and NCM2
+let g:ale_completion_enabled = 0
 
-autocmd BufEnter * call ncm2#enable_for_buffer()
+" required by NCM2
+let g:python3_host_prog = "/usr/local/bin/python3"
 
 " IMPORTANT: :help Ncm2PopupOpen for more information
 set completeopt=noinsert,menuone,noselect
+autocmd BufEnter * call ncm2#enable_for_buffer()
 
-au InsertEnter * call ncm2#enable_for_buffer()
-   au Filetype tex call ncm2#register_source({
-       \ 'name' : 'vimtex-cmds',
-       \ 'priority': 8,
-       \ 'complete_length': -1,
-       \ 'scope': ['tex'],
-       \ 'matcher': {'name': 'prefix', 'key': 'word'},
-       \ 'word_pattern': '\w+',
-       \ 'complete_pattern': g:vimtex#re#ncm2#cmds,
-       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
-       \ })
-   au Filetype tex call ncm2#register_source({
-       \ 'name' : 'vimtex-labels',
-       \ 'priority': 8,
-       \ 'complete_length': -1,
-       \ 'scope': ['tex'],
-       \ 'matcher': {'name': 'combine',
-       \             'matchers': [
-       \               {'name': 'substr', 'key': 'word'},
-       \               {'name': 'substr', 'key': 'menu'},
-       \             ]},
-       \ 'word_pattern': '\w+',
-       \ 'complete_pattern': g:vimtex#re#ncm2#labels,
-       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
-       \ })
-   au Filetype tex call ncm2#register_source({
-       \ 'name' : 'vimtex-files',
-       \ 'priority': 8,
-       \ 'complete_length': -1,
-       \ 'scope': ['tex'],
-       \ 'matcher': {'name': 'combine',
-       \             'matchers': [
-       \               {'name': 'abbrfuzzy', 'key': 'word'},
-       \               {'name': 'abbrfuzzy', 'key': 'abbr'},
-       \             ]},
-       \ 'word_pattern': '\w+',
-       \ 'complete_pattern': g:vimtex#re#ncm2#files,
-       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
-       \ })
-   au Filetype tex call ncm2#register_source({
-       \ 'name' : 'bibtex',
-       \ 'priority': 8,
-       \ 'complete_length': -1,
-       \ 'scope': ['tex'],
-       \ 'matcher': {'name': 'combine',
-       \             'matchers': [
-       \               {'name': 'prefix', 'key': 'word'},
-       \               {'name': 'abbrfuzzy', 'key': 'abbr'},
-       \               {'name': 'abbrfuzzy', 'key': 'menu'},
-       \             ]},
-       \ 'word_pattern': '\w+',
-       \ 'complete_pattern': g:vimtex#re#ncm2#bibtex,
-       \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
-       \ })
 
-""""
+" =========================
+" buffer looks and misc. UI
+" =========================
 
+syntax on
+filetype on
 set number
 set wildmenu
 set nohlsearch
-set encoding=utf-8
-
-set expandtab
 set wrap
+
+set colorcolumn=81
+set textwidth=80
+set formatoptions=cr
+
+" Splits open at the bottom and right
+set splitbelow splitright
+
+" text enconding, tab settings, etc.
+set encoding=utf-8
+set expandtab
 set tabstop=4
 set shiftwidth=4
 
@@ -146,45 +123,78 @@ set hidden
 set autowrite
 set spell
 
-syntax on
-filetype on
+" configures gruvbox theme
+let g:gruvbox_termcolors=16
+set background=dark
+colorscheme gruvbox
 
-" Splits open at the bottom and right
-set splitbelow splitright
+" enables mouse support (only in normal mode)
+set mouse=n
+if !has('nvim')
+    set ttymouse=xterm2
+endif
 
-nmap <silent> <leader>rc :so $MYVIMRC<CR>:echo "Configs refreshed"<CR>
 
-set colorcolumn=81
-set textwidth=80
-set formatoptions-=t
+" ================
+" Shortcut mapping
+" ================
 
-" Navigation
+let mapleader = ' '
+
+" Cycles through buffers
 nmap <silent> <S-Tab> :bp<CR>
+" switches to previous buffer
 nmap <leader><leader> :b#<CR>
 
+" moves through panels
 nmap <silent> <S-K> <C-W><C-K>
 nmap <silent> <S-L> <C-W><C-L>
 nmap <silent> <S-J> <C-W><C-J>
 nmap <silent> <S-H> <C-W><C-H>
 
-nnoremap <silent> <C-K> :res +5<CR>
-nnoremap <silent> <C-L> :vert res +5<CR>
-nnoremap <silent> <C-J> :res -5<CR>
-nnoremap <silent> <C-H> :vert res -5<CR>
+" clipboard copy/paste
+nmap <silent> <leader>cy "+y
+nmap <silent> <leader>cp "+p
 
-nmap <silent> <leader>dd :LspDefinition<CR>
-
-" Windows and buffers
 " Closes current buffer and goes to previous one
 nmap <silent> <leader>qq :bp\|bd#<CR>
-nmap <silent> <leader>ba :ls<CR>
-
-nmap <silent> <leader>tn :tabn<CR>
-nmap <silent> <leader>tp :tabp<CR>
-
+" closes current window
 nmap <silent> <leader>wq <C-W><C-Q>
 
+" refreshes config file
+nmap <silent> <leader>rc :so $MYVIMRC<CR>:echo "Configs refreshed"<CR>
+" opens vim config file in a buffer for editing
+nmap <leader>ec :e ~/.config/nvim/init.vim<CR>
+
+" Invokes make
+nmap M :!make<CR>
+" repeats last command executed in vim's shell
+nmap <silent> !! :!!<CR>
+
+" justifies paragraph around cursor
+nmap gp gqap
+" toggles all lines selection to be (un)commented
+nmap <silent> <leader>cc :Commentary<CR>
+
+" opens a file manager navigation with lf
+nmap <silent> <C-e> :Lf<CR>
+
+nmap <C-P> :GFiles --cached --others<CR>
+nmap <C-S> :Buffers<CR>
+nmap <C-F> :Ag<CR>
+
+" @@@ LSP shortcuts @@@
+" jumps to symbol definition
+nmap <silent> <leader>dd :LspDefinition<CR>
+" renames a symbol in the entire project
+" TODO: save it afterwards automatically?
+nnoremap <silent> cn :LspRename<CR>
+
+
+" =========
 " Lightline
+" =========
+"
 if !has('gui_running')
     set t_Co=256
 endif
@@ -210,32 +220,11 @@ function! LightlineReload()
     call lightline#update()
 endfunction
 
-" Gruvbox color scheme
-set background=dark
-let g:gruvbox_termcolors=16
-
-colorscheme gruvbox
-
-" Mouse window resizing
-set mouse=n
-if !has('nvim')
-    set ttymouse=xterm2
-endif
-
-" Git/Fugitive
-nmap <leader>gc :vert Git commit --verbose<CR>
-nmap <leader>gd :vert Git diff<CR>
-nmap <leader>gs :Git status -s<CR>
-nmap <leader>ga :vert Git add . -p<CR>
-nmap <leader>gu :Git reset .<CR>
-nmap <leader>gg :vert Git diff --staged<CR>
-nmap <leader>gk :Git checkout
-nmap <leader>gp :Git pull -p<CR>
-
 if has('python3')
     set pyx=3
 endif
 
+<<<<<<< HEAD
 " Shortcuts
 nmap <leader>ec :e ~/.config/nvim/init.vim<CR>
 
@@ -257,12 +246,15 @@ nmap     <C-F> :Ag<CR>
 
 nnoremap <silent> cn :LspRename<CR>
 
+=======
+>>>>>>> origin/macos
 " Vimtex
 let g:tex_flavor = 'latex'
 
 " Lf
 let g:lf_replace_netrw = 1 " Open lf when vim opens a directory
 
+<<<<<<< HEAD
 " golang/delve
 let g:delve_breakpoint_sign = "*"
 let g:delve_use_vimux = 1
@@ -272,3 +264,14 @@ LightlineReload
 
 " dispatch rules
 autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
+=======
+" rainbow parenthesis
+let g:rainbow_active = 1
+
+LightlineReload
+
+" LspRename save all files? solution: use :wa after renaming
+" => maybe consider redefining function
+" Shortcut to run test in REPL
+" linting? (unscoped symbols)
+>>>>>>> origin/macos
