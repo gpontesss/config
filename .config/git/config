@@ -27,7 +27,7 @@
 [url "git@github.com:tembici/"]
 	insteadOf = tembici:
 
-[url "git@github.com:"]
-	insteadOf = gh:
+[url "git@github.com:gpontesss/"]
+	insteadOf = me:
 [pull]
 	ff = only
