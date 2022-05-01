@@ -9,7 +9,6 @@ Plug 'sheerun/vim-polyglot'
 Plug 'airblade/vim-rooter'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
-" Plug 'kevinhwang91/rnvimr'
 Plug 'ptzz/lf.vim'
 Plug 'voldikss/vim-floaterm'
 Plug 'tpope/vim-commentary'
@@ -35,6 +34,12 @@ Plug 'ncm2/ncm2-markdown-subscope'
 Plug 'prabirshrestha/vim-lsp'
 Plug 'mattn/vim-lsp-settings'
 Plug 'ncm2/ncm2-vim-lsp'
+
+" golang
+Plug 'benmills/vimux'
+Plug 'sebdah/vim-delve'
+
+Plug 'tpope/vim-dispatch'
 
 call plug#end()
 
@@ -62,7 +67,7 @@ let g:ale_completion_enabled = 0
 " NCM2
 let g:lsp_diagnostics_enabled = 0
 let g:lsp_diagnostics_virtual_text_enabled = 0
-let g:python3_host_prog = "/usr/bin/python3"
+" let g:python3_host_prog = system("which python3")
 
 
 autocmd BufEnter * call ncm2#enable_for_buffer()
@@ -139,6 +144,7 @@ set shiftwidth=4
 
 set hidden
 set autowrite
+set spell
 
 syntax on
 filetype on
@@ -240,7 +246,7 @@ nmap <leader>cp "+p
 vmap <leader>cy "+y
 vmap <leader>cp "+p
 
-nmap          M     :!make<CR>
+nmap <silent> M     :Dispatch!<CR>
 " nmap <silent> <C-e> :RnvimrToggle<CR>
 nmap <silent> <C-e> :Lf<CR>
 nmap <silent> !!    :!!<CR>
@@ -257,4 +263,12 @@ let g:tex_flavor = 'latex'
 " Lf
 let g:lf_replace_netrw = 1 " Open lf when vim opens a directory
 
+" golang/delve
+let g:delve_breakpoint_sign = "*"
+let g:delve_use_vimux = 1
+nmap <silent> <leader>bb :DlvToggleBreakpoint<CR>
+
 LightlineReload
+
+" dispatch rules
+autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
