@@ -13,6 +13,7 @@
   #TERM: alacritty
 
 window:
+  opacity: 1.0
   # Window dimensions (changes require restart)
   #
   # Specified in number of columns/lines, not pixels.
@@ -97,12 +98,12 @@ font:
     #   - (macOS) Menlo
     #   - (Linux/BSD) monospace
     #   - (Windows) Consolas
-    family: NotoSansMono
+    family: "Noto Sans Mono"
 
     # The `style` can be specified to pick a specific face.
     style: Regular
 
-  size: 10.0
+  size: 20.0
 
   # Bold font face
 #  bold:
@@ -290,12 +291,6 @@ colors:
 #  duration: 0
 #  color: '#ffffff'
 
-# Background opacity
-#
-# Window opacity as a floating point number from `0.0` to `1.0`.
-# The value `0.0` is completely transparent and `1.0` is opaque.
-background_opacity: 1
-
 #selection:
   #semantic_escape_chars: ",│`|:\"' ()[]{}<>\t"
 
@@ -330,10 +325,12 @@ cursor:
 #   - (macOS) /bin/bash --login
 #   - (Linux/BSD) user login shell
 #   - (Windows) powershell
-#shell:
-#  program: /bin/bash
-#  args:
-#    - --login
+#
+# TODO: dynamic config files depending on operating system
+shell:
+  program: /usr/local/bin/bash
+  args:
+    - --login
 
 # Startup directory
 #
@@ -352,7 +349,7 @@ cursor:
 #winpty_backend: false
 
 # Send ESC (\x1b) before characters when alt is pressed.
-#alt_send_esc: true
+alt_send_esc: false
 
 #mouse:
   # Click settings
