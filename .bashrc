@@ -29,7 +29,7 @@ __prompt_command() {
     local Yel='\[\e[0;33m\]'
     local Blu='\[\e[0;34m\]'
 
-    PS1+="${BGre}$(__venv)${Blu}\u${Red}@${Yel}\h ${BBGre}\w${Red}$(__gitbranch)\n"
+    PS1+="${BGre}$(__venv)${Blu}\u${Red}@${Yel}\H ${BBGre}\w${Red}$(__gitbranch)\n"
 
     if [ $EXIT != 0 ]; then
         PS1+="${BRed}>${RCol} "
@@ -66,10 +66,11 @@ if ${use_color} ; then
 	# 	fi
 	# fi
 
-	alias ls='ls --color=auto'
+    # TODO: make it OS sensible
+	# alias ls='ls --color=auto'
 	alias grep='grep --colour=auto'
-	alias egrep='egrep --colour=auto'
-	alias fgrep='fgrep --colour=auto'
+	# alias egrep='egrep --colour=auto'
+	# alias fgrep='fgrep --colour=auto'
 else
 	if [[ ${EUID} == 0 ]] ; then
 		# show root@ when we don't have colors
@@ -96,16 +97,17 @@ shopt -s expand_aliases
 # Enable history appending instead of overwriting.  #139609
 shopt -s histappend
 
-alias cp="cp -i"                          # confirm before overwriting something
-alias df='df -h'                          # human-readable sizes
-alias free='free -m'                      # show sizes in MB
-alias more=less
+# TODO: make it OS sensible
+# alias cp="cp -i"                          # confirm before overwriting something
+# alias df='df -h'                          # human-readable sizes
+# alias free='free -m'                      # show sizes in MB
+# alias more=less
 
 # for all your nvim needs
 alias \
-    vim=/usr/bin/nvim \
-    nv=/usr/bin/nvim \
-    v=/usr/bin/nvim
+    vim=$(which nvim) \
+    nv=$(which nvim) \
+    v=$(which nvim)
 
 alias info="info --vi-keys"
 alias zt="zathura"
