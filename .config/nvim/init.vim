@@ -17,6 +17,7 @@ Plug 'voldikss/vim-floaterm'
 Plug 'tpope/vim-commentary'
 Plug 'junegunn/vim-easy-align'
 Plug 'jiangmiao/auto-pairs'
+Plug 'tpope/vim-dispatch'
 
 " Git
 Plug 'airblade/vim-gitgutter'
@@ -38,11 +39,14 @@ Plug 'prabirshrestha/vim-lsp'
 Plug 'mattn/vim-lsp-settings'
 Plug 'ncm2/ncm2-vim-lsp'
 
+" golang
+Plug 'benmills/vimux'
+Plug 'sebdah/vim-delve'
+
 " clojure
 " Plug 'guns/vim-clojure-static'
 Plug 'tpope/vim-fireplace'
 Plug 'frazrepo/vim-rainbow'
-Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-salve'
 
 call plug#end()
@@ -63,17 +67,30 @@ let g:ale_fixers = {
 \   '*': ['remove_trailing_lines', 'trim_whitespace'],
 \ }
 
-let g:lsp_diagnostics_enabled = 0
+" for Clojure, I find it's better to install the server manually rather than
+" using the LSP installer, to avoid version conflicts, etc.
+autocmd User lsp_setup
+    \ call lsp#register_server({
+    \     'name': 'clojure-lsp',
+    \     'cmd': {server_info->['clojure-lsp']},
+    \     'allowlist': ['clojure'],
+    \ }) |
+    \ autocmd BufWritePre *.clj LspDocumentFormat " autoformat on save
+
+let g:lsp_diagnostics_enabled = 1
 let g:lsp_diagnostics_virtual_text_enabled = 0
 let g:ale_linters = {
 \   'markdown': ['proselint'],
 \ }
 
+let g:lsp_log_verbose = 1
+let g:lsp_log_file = expand('~/.vim/vim-lsp.log')
+
 " completion should be done with LSP and NCM2
 let g:ale_completion_enabled = 0
 
 " required by NCM2
-let g:python3_host_prog = "/usr/local/bin/python3"
+let g:python3_host_prog = "/usr/bin/python3"
 
 " IMPORTANT: :help Ncm2PopupOpen for more information
 set completeopt=noinsert,menuone,noselect
@@ -106,6 +123,7 @@ set shiftwidth=4
 
 set hidden
 set autowrite
+set spell
 
 " configures gruvbox theme
 let g:gruvbox_termcolors=16
@@ -136,9 +154,11 @@ nmap <silent> <S-L> <C-W><C-L>
 nmap <silent> <S-J> <C-W><C-J>
 nmap <silent> <S-H> <C-W><C-H>
 
-" clipboard copy/paste
+" clipboard copy/paste (for both normal/visual modes)
 nmap <silent> <leader>cy "+y
 nmap <silent> <leader>cp "+p
+vmap <silent> <leader>cy "+y
+vmap <silent> <leader>cp "+p
 
 " Closes current buffer and goes to previous one
 nmap <silent> <leader>qq :bp\|bd#<CR>
@@ -196,8 +216,7 @@ let g:lightline = {
     \ },
     \ }
 
-command! LightlineReload call LightlineReload()
-
+autocmd SourcePost * call LightlineReload()
 function! LightlineReload()
     call lightline#init()
     call lightline#colorscheme()
@@ -214,12 +233,21 @@ let g:tex_flavor = 'latex'
 " Lf
 let g:lf_replace_netrw = 1 " Open lf when vim opens a directory
 
+" golang/delve
+let g:delve_breakpoint_sign = "*"
+let g:delve_use_vimux = 1
+nmap <silent> <leader>bb :DlvToggleBreakpoint<CR>
+
+" dispatch rules
+autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
+
 " rainbow parenthesis
 let g:rainbow_active = 1
 
-LightlineReload
 
 " LspRename save all files? solution: use :wa after renaming
-" => maybe consider redefining function
+" => maybe consider redefining function?
 " Shortcut to run test in REPL
-" linting? (unscoped symbols)
+" linting? (unscoped/unsed symbols, etc.)
+" fix diagnostics and warnings
+" fix damn ctrl-P to work outside of git repo

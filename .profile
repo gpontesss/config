@@ -33,4 +33,7 @@ export TEXMFHOME=$XDG_CONFIG_HOME/texmf
 export JAVA_HOME="/usr/lib/jvm/java-8-openjdk"
 export ANDROID_SDK_ROOT="/opt/android-sdk"
 
+# needed by flutter
+export CHROME_EXECUTABLE="$(which chromium)"
+
 source $HOME/.bashrc

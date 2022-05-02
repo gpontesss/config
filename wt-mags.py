@@ -2,6 +2,7 @@ import asyncio
 import calendar
 import datetime as dt
 import sys
+import time
 from dataclasses import dataclass, field
 from urllib.parse import urljoin
 
@@ -12,9 +13,22 @@ from aiostream import async_, operator, pipe, stream, streamcontext
 from bs4 import BeautifulSoup
 
 
+def apartial(fn, *args, **kwargs):
+    """Partially applies args and kwargs to a async function. It immitates
+    `functools.partial`."""
+    return async_(
+        lambda *args2, **kwargs2: fn(
+            *args,
+            *args2,
+            **kwargs,
+            **kwargs2,
+        ),
+    )
+
+
 @dataclass
 class Article:
-    """docs here."""
+    """Gathers basic information of an article in a magazine."""
 
     date: dt.date = field(init=False)
     title: str
@@ -38,27 +52,38 @@ class Article:
         except ValueError:
             year = int(path_split[-2].split("-")[-1])
 
-        self.date = dt.date(
-            year=year,
-            month=month_num,
-            day=day,
-        )
+        self.date = dt.date(year=year, month=month_num, day=day)
 
     async def content(self) -> asyncio.StreamReader:
-        """docs here."""
-        ps = await asyncio.create_subprocess_exec(
-            "links",
-            "-dump",
-            self.url,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        await ps.wait()
+        """Gets article content in textual form returning an async reader. It
+        uses `links` to query readable text without markup from the article's
+        link."""
+
+        retry_sleep_base = 0.1  # in seconds
+        max_retries = 10
+        tried = 0
+        while tried < max_retries:
+            await asyncio.sleep(retry_sleep_base * (tried ** 2))
+            ps = await asyncio.create_subprocess_exec(
+                "links",
+                "-dump",
+                self.url,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await ps.wait()
+            if ps.returncode == 0:
+                break
+            tried += 1
+
+        if ps.returncode != 0:
+            raise ValueError(f"Failed to query article '{self.title}' ({self.url})")
         return ps.stdout
 
 
 async def fetch_magazine(session, url):
-    """docs here."""
+    """Fetches all articles in a magazine, returning them on an asynchronous
+    stream."""
 
     async with session.get(
         url,
@@ -101,40 +126,40 @@ async def fetch_magazine(session, url):
 
 
 async def fetch_month(session, year: int, month: int):
-    """docs here."""
+    """Fetches all articles in all magazines of a month, returning them on an
+    asynchronous stream."""
 
-    year_wts_url = urljoin(
-        "https://wol.jw.org/en/wol/library/r1/lp-e/all-publications/watchtower/",
-        f"the-watchtower-{year}/study-edition/",
-    )
+    wts_url = "https://wol.jw.org/en/wol/library/r1/lp-e/all-publications/watchtower/"
+    recent_year_wts_url = urljoin(wts_url, f"the-watchtower-{year}/study-edition/")
+    old_year_wts_url = urljoin(wts_url, f"the-watchtower-{year}/")
 
     month_name = calendar.month_name[month].lower()
-    if 2022 >= year >= 2016:
-        month_wt_urls = (urljoin(year_wts_url, month_name),)
+    if year >= 2016:
+        month_wt_urls = (urljoin(recent_year_wts_url, month_name),)
     elif 2015 >= year >= 2008:
-        month_wt_urls = (urljoin(year_wts_url, month_name + "-15"),)
+        month_wt_urls = (urljoin(recent_year_wts_url, month_name + "-15"),)
     elif 2007 >= year:
         month_wt_urls = (
-            urljoin(year_wts_url, month_name + "-15"),
-            urljoin(year_wts_url, month_name + "-1"),
+            urljoin(old_year_wts_url, month_name + "-15"),
+            urljoin(old_year_wts_url, month_name + "-1"),
         )
 
     return stream.flatten(
-        stream.iterate(month_wt_urls)
-        | pipe.map(async_(lambda url: fetch_magazine(session, url)))
+        stream.iterate(month_wt_urls) | pipe.map(apartial(fetch_magazine, session))
     )
 
 
 async def fetch_year(session, year):
-    """docs here."""
+    """Fetches all articles in all magazines of a year, returning them on an
+    asynchronous stream."""
     return stream.flatten(
-        stream.range(1, 13)
-        | pipe.map(async_(lambda month: fetch_month(session, year, month)))
+        stream.range(1, 13) | pipe.map(apartial(fetch_month, session, year))
     )
 
 
 async def save_article(base_path: str, article: Article):
-    """docs here."""
+    """Saves an article on disk given a base path. The file should be saved on
+    `<base_path>/<year>/<year>-<month>-<day-<title>.txt`."""
     base_path = AsyncPath(base_path)
     date = article.date
     year_path = base_path / str(date.year)
@@ -144,7 +169,10 @@ async def save_article(base_path: str, article: Article):
     article_path = year_path / article_filename
 
     async with async_open(article_path, "wb") as file:
-        await file.write(await (await article.content()).read())
+        content = await article.content()
+        await file.write(await content.read())
+
+    return article
 
 
 @operator(pipable=True)
@@ -160,25 +188,31 @@ async def streamprogress(source):
     yield count
 
 
-async def main():
-    """docs here."""
-    base_path = "/ext/media/articles/wt/"
+async def main(base_path: str, from_year: int, to_year: int):
+    """Fetches all articles from a year range and saves them on disk, displaying
+    operations progress."""
 
     async with aiohttp.ClientSession() as session:
         saved = await (
             stream.flatten(
                 stream.map(
-                    stream.range(220, 2022),
-                    async_(lambda year: fetch_year(session, year)),
-                )
+                    stream.range(from_year, to_year),
+                    apartial(fetch_year, session),
+                ),
             )
-            | pipe.map(
-                async_(lambda article: save_article(base_path, article)),
-            )
+            | pipe.map(apartial(save_article, base_path))
             | streamprogress.pipe()
         )
     print(f"\nsaved {saved} articles")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    base_path = "/ext/media/articles/wt/"
+    step = 2
+    # just some simple throttling, since wol.jw.org will refuse requests if it
+    # detects too many requests.
+    for from_year in range(1950, 2023, step):
+        to_year = from_year + step
+        print(f"querying articles from years {from_year}-{to_year}")
+        asyncio.run(main(base_path, from_year, to_year))
+        time.sleep(10)

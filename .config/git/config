@@ -1,33 +1,38 @@
+[core]
+	editor = nvim
 [user]
 	email = pontes.guisilva@gmail.com
 	name = gpontesss
 	signinkey = 474255977B1F704C
-
 [alias]
 	adog = log --all --decorate --oneline --graph
 	dog = log --decorate --oneline --graph
 	s = status -s
 	curb = branch --show-current
+    p = pull -p
 	c = commit -v
 	ca = commit -v --amend
 	ck = ! git checkout "$(git branch | grep -v '*' | fzf | xargs)"
+    ckb = checkout -b
+
 
 [merge]
-	tool = vimdiff
+  tool = vimdiff
+[diff]
+  tool = vimdiff
+[mergetool]
+  prompt = true
+[mergetool "vimdiff"]
+  cmd = nvim -d $LOCAL $REMOTE $MERGED -c 'wincmd w' -c 'wincmd J'
+[difftool]
+  prompt = false
 
-[core]
-	editor = nvim
-
-[commit]
-	gpgsign = false
-
-[gpg]
-	program = gpg
-
-[url "git@github.com:tembici/"]
-	insteadOf = tembici:
-
-[url "git@github.com:gpontesss/"]
-	insteadOf = me:
 [pull]
 	ff = only
+[commit]
+    # TODO: fix it (apparently the key expired and needs to be renewed)
+	gpgsign = false
+[gpg]
+	program = gpg
+[url "git@github.com:gpontesss/"]
+	insteadOf = me:
