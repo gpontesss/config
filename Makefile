@@ -7,6 +7,7 @@ ACPI_DST = /etc
 ACPI_TARGETS = $(addprefix $(ACPI_DST)/,$(shell find $(ACPI_SRC) -type f))
 
 TRANSMISSION_HOME = /var/lib/transmission/.config/transmission-daemon
+TRANSMISSION_TARGETS  = $(TRANSMISSION_HOME)/settings.json
 
 .PHONY: all
 all: dotfiles acpi transmission
@@ -27,9 +28,9 @@ $(ACPI_DST)/%: %
 	@ln -fs $(abspath $^) $@
 
 .PHONY: transmission
-transmission: $(TRANSMISSION_HOME)/settings.json
+transmission: $(TRANSMISSION_TARGETS)
 
-$(TRANSMISSION_HOME)/settings.json: transmission/settings.json
+$(TRANSMISSION_HOME)/%: transmission/%
 	@-systemctl stop transmission
 	@mkdir -p $(dir $@)
 	@cp "$^" "$@"
@@ -46,7 +47,7 @@ clean-acpi:
 
 .PHONY: clean-transmission
 clean-transmission:
-	@rm -rf $(TRANSMISSION_HOME)/settings.json
+	@rm -rf $(TRANSMISSION_TARGETS)
 
 .PHONY: clean
 clean: clean-dotfiles clean-acpi clean-transmission
