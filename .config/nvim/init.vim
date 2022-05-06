@@ -4,8 +4,10 @@ Plug 'neovim/nvim-lspconfig'
 
 Plug 'itchyny/lightline.vim'
 Plug 'morhetz/gruvbox'
-Plug 'sheerun/vim-polyglot'
 Plug 'frazrepo/vim-rainbow'
+Plug 'sheerun/vim-polyglot'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'p00f/nvim-ts-rainbow'
 
 Plug 'ptzz/lf.vim'
 Plug 'junegunn/fzf'
@@ -32,10 +34,7 @@ Plug 'ncm2/ncm2-path'
 Plug 'lervag/vimtex'
 Plug 'ncm2/ncm2-markdown-subscope'
 
-Plug 'sebdah/vim-delve'
-
 Plug 'tpope/vim-fireplace'
-Plug 'guns/vim-clojure-static'
 Plug 'eraserhd/parinfer-rust', {'do': 'cargo build --release'}
 
 call plug#end()
@@ -44,7 +43,32 @@ call plug#end()
 " LSP, linting and fixing
 " =============================================================================
 
-lua require('lspconfig').clojure_lsp.setup{}
+set nocompatible " required by vim-polyglot (and probably other plugins too)
+
+lua <<EOF
+require('lspconfig').clojure_lsp.setup{}
+require('lspconfig').gopls.setup{}
+
+require('nvim-treesitter.configs').setup {
+  highlight = {
+    enable = true,
+    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+    -- Using this option may slow down your editor, and you may see some duplicate highlights.
+    -- Instead of true it can also be a list of languages
+    -- additional_vim_regex_highlighting = false,
+  },
+  rainbow = {
+     enable = true,
+     -- disable = { "jsx", "cpp" }, list of languages you want to disable the plugin for
+     extended_mode = true, -- Also highlight non-bracket delimiters like html tags, boolean or table: lang -> boolean
+     -- max_file_lines = nil, -- Do not enable for files with more than n lines, int
+     -- colors = {}, -- table of hex strings
+     -- termcolors = {} -- table of colour name strings
+  },
+}
+EOF
+
 autocmd BufWritePre *.clj lua vim.lsp.buf.formatting()
 
 " some of fireplace's keymaps conflict with mine, so they are just overall
@@ -88,6 +112,7 @@ set number
 set wildmenu
 set nohlsearch
 set wrap
+set laststatus=3
 
 set colorcolumn=81
 set textwidth=80
