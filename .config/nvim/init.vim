@@ -3,7 +3,7 @@ call plug#begin('~/.vim/plugged')
 Plug 'neovim/nvim-lspconfig'
 
 Plug 'itchyny/lightline.vim'
-Plug 'morhetz/gruvbox'
+Plug 'sainnhe/gruvbox-material'
 Plug 'frazrepo/vim-rainbow'
 Plug 'sheerun/vim-polyglot'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -95,7 +95,7 @@ let g:ale_linters = {
 let g:ale_completion_enabled = 0
 
 " required by NCM2
-let g:python3_host_prog = "/usr/local/bin/python3"
+let g:python3_host_prog = "/usr/bin/python3"
 
 " IMPORTANT: :help Ncm2PopupOpen for more information
 set completeopt=noinsert,menuone,noselect
@@ -132,9 +132,10 @@ set autowrite
 set spell
 
 " configures gruvbox theme
-let g:gruvbox_termcolors=16
+let g:gruvbox_material_background = 'medium'
+let g:gruvbox_material_statusline_style = 'mix'
 set background=dark
-colorscheme gruvbox
+colorscheme gruvbox-material
 
 let g:rainbow_active = 1
 
@@ -147,11 +148,11 @@ set mouse=n
 if !has('nvim') | set ttymouse=xterm2 | endif
 
 " @@@ Lightline @@@
-set noshowmode laststatus=2
+set noshowmode
 if !has('gui_running') | set t_Co=256 | endif
 
 let g:lightline = {
-\   'colorscheme': 'gruvbox',
+\   'colorscheme': 'gruvbox_material',
 \   'active': {
 \     'left': [ [ 'mode', 'paste' ],
 \               [ 'gitbranch', 'readonly', 'filename', 'modified' ] ],
