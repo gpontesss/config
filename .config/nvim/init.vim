@@ -222,6 +222,7 @@ nnoremap <silent> g/ <Cmd>lua vim.lsp.buf.workspace_symbol()<CR>
 nnoremap <silent> gT <Cmd>lua vim.lsp.buf.type_definition()<CR>
 nnoremap <silent> gi <Cmd>lua vim.lsp.buf.implementation()<CR>
 nnoremap <silent> K  <Cmd>lua vim.lsp.buf.hover()<CR>
+nnoremap <silent> cn  <Cmd>lua vim.lsp.buf.rename()<CR>
 
 " =============================================================================
 " vim-dispatch
