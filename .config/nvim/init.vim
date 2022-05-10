@@ -18,6 +18,8 @@ Plug 'hrsh7th/nvim-cmp'
 Plug 'SirVer/ultisnips'
 
 Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
+Plug 'nvim-telescope/telescope-ui-select.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 
 Plug 'itchyny/lightline.vim'
@@ -51,6 +53,19 @@ call plug#end()
 " =============================================================================
 
 set nocompatible " required by vim-polyglot (and probably other plugins too)
+
+lua <<EOF
+require('telescope').setup({
+  defaults = {
+    layout_strategy = 'vertical'
+  },
+  ["ui-select"] = {
+    require("telescope.themes").get_dropdown()
+  },
+})
+require('telescope').load_extension('fzf')
+require("telescope").load_extension("ui-select" )
+EOF
 
 lua <<EOF
 require('dap-go').setup()
@@ -258,6 +273,8 @@ nmap <silent> <leader>R
 nmap M <Cmd>!make<CR>
 " repeats last command executed in vim's shell
 nmap <silent> !! <Cmd>!!<CR>
+" remaps ctrl+C to ESC, for visual block substitution
+vnoremap <C-C> <ESC>
 
 " justifies paragraph around cursor
 nmap <silent> gp gqap
@@ -287,16 +304,16 @@ inoremap <silent> <C-Space> <Cmd>lua vim.lsp.buf.signature_help()<CR>
 " TODO: is it possible to only map those when in debug mode? or maybe try using
 " F-keys
 " TODO: integrate debugging status in lightline
-nmap <silent> <Space>b <Cmd>lua require("dap").toggle_breakpoint()<CR>
-nmap <silent> <Space>B <Cmd>lua require("dap").toggle_breakpoint(vim.fn.input("Breakpoint condition: "))<CR>
-nmap <silent> <Space>n <Cmd>lua require("dap").step_over()<CR>
-nmap <silent> <Space>N <Cmd>lua require("dap").step_back()<CR>
-nmap <silent> <Space>i <Cmd>lua require("dap").step_into()<CR>
-nmap <silent> <Space>o <Cmd>lua require("dap").step_out()<CR>
-nmap <silent> <Space>d <Cmd>lua require("dap").step_out()<CR>
-nmap <silent> <Space>c <Cmd>lua require("dap").continue()<CR>
-nmap <silent> <Space>C <Cmd>lua require("dap").close()<CR>
-nmap <silent> <Space>r <Cmd>lua require("dap").repl.toggle()<CR>
+nmap <silent> <F2>b <Cmd>lua require("dap").toggle_breakpoint()<CR>
+nmap <silent> <F2>B <Cmd>lua require("dap").toggle_breakpoint(vim.fn.input("Breakpoint condition: "))<CR>
+nmap <silent> <F2>n <Cmd>lua require("dap").step_over()<CR>
+nmap <silent> <F2>N <Cmd>lua require("dap").step_back()<CR>
+nmap <silent> <F2>i <Cmd>lua require("dap").step_into()<CR>
+nmap <silent> <F2>o <Cmd>lua require("dap").step_out()<CR>
+nmap <silent> <F2>d <Cmd>lua require("dap").step_out()<CR>
+nmap <silent> <F2>c <Cmd>lua require("dap").continue()<CR>
+nmap <silent> <F2>C <Cmd>lua require("dap").close()<CR>
+nmap <silent> <F2>r <Cmd>lua require("dap").repl.toggle()<CR>
 
 " =============================================================================
 " vim-dispatch
@@ -309,11 +326,11 @@ autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
 " TODO: checkout chad-looking https://github.com/tpope/vim-dadbod
 " TODO: look at these plugins:
 " + https://github.com/clojure-vim/vim-jack-in
-" + https://github.com/mfussenegger/nvim-dap
 " + https://www.cognitect.com/blog/2017/4/17/clojure-for-neovim-for-clojure
-" + https://github.com/nvim-telescope/telescope.nvim
 " + https://github.com/Olical/conjure
 " + https://github.com/guns/vim-sexp
+" + https://github.com/stevearc/dressing.nvim
+" + https://github.com/nvim-telescope/telescope.nvim/pull/878
 
 " For reference: https://github.com/nanotee/nvim-lua-guide
 " Bunch of cool lua plugins: https://github.com/nvim-lua
