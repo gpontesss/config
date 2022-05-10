@@ -90,54 +90,22 @@ window:
 
 # Font configuration
 font:
-  # Normal (roman) font face
   normal:
-    # Font family
-    #
-    # Default:
-    #   - (macOS) Menlo
-    #   - (Linux/BSD) monospace
-    #   - (Windows) Consolas
-    family: "Noto Sans Mono"
-
-    # The `style` can be specified to pick a specific face.
+    family: "JetBrains Mono"
     style: Regular
+  bold:
+    family: "JetBrains Mono"
+    style: Bold
+  italic:
+    family: "JetBrains Mono"
+    style: Italic
+  bold_italic:
+    family: "JetBrains Mono"
+    style: Bold Italic
 
   size: 16.0
+    
 
-  # Bold font face
-#  bold:
-#    # Font family
-#    #
-#    # If the bold family is not specified, it will fall back to the
-#    # value specified for the normal font.
-#    family: Inconsolata
-#
-#    # The `style` can be specified to pick a specific face.
-#    style: Bold
-#
-#  # Italic font face
-#  italic:
-#    # Font family
-#    #
-#    # If the italic family is not specified, it will fall back to the
-#    # value specified for the normal font.
-#    family: Inconsolata
-#
-#    # The `style` can be specified to pick a specific face.
-#    style: Italic
-#
-#  # Bold italic font face
-#  #bold_italic:
-#    # Font family
-#    #
-#    # If the bold italic family is not specified, it will fall back to the
-#    # value specified for the normal font.
-#    #family: monospace
-#
-#    # The `style` can be specified to pick a specific face.
-#    #style: Bold Italic
-#
 #  # Point size
 
   # Offset is the extra space around each character. `offset.y` can be thought of
@@ -167,7 +135,7 @@ font:
   #
   # This is a global setting and will require a log out or restart to take
   # effect.
-  #use_thin_strokes: true
+  use_thin_strokes: true
 
 # If `true`, bold text is drawn using the bright color variants.
 draw_bold_text_with_bright_colors: true
