@@ -104,7 +104,6 @@ font:
     style: Bold Italic
 
   size: 16.0
-    
 
 #  # Point size
 
@@ -296,7 +295,7 @@ cursor:
 #
 # TODO: dynamic config files depending on operating system
 shell:
-  program: /usr/local/bin/bash
+  program: /bin/bash
   args:
     - --login
 
