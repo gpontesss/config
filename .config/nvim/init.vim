@@ -3,6 +3,9 @@ call plug#begin('~/.vim/plugged')
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
+Plug 'mfussenegger/nvim-dap'
+Plug 'leoluz/nvim-dap-go'
+
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
@@ -10,8 +13,12 @@ Plug 'hrsh7th/cmp-cmdline'
 Plug 'andersevenrud/cmp-tmux'
 Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
 Plug 'hrsh7th/cmp-emoji'
+Plug 'rcarriga/cmp-dap'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'SirVer/ultisnips'
+
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
 
 Plug 'itchyny/lightline.vim'
 Plug 'sainnhe/gruvbox-material'
@@ -19,8 +26,6 @@ Plug 'frazrepo/vim-rainbow'
 Plug 'sheerun/vim-polyglot'
 Plug 'p00f/nvim-ts-rainbow'
 
-Plug 'junegunn/fzf'
-Plug 'junegunn/fzf.vim'
 Plug 'voldikss/vim-floaterm'
 Plug 'ptzz/lf.vim'
 
@@ -46,6 +51,15 @@ call plug#end()
 " =============================================================================
 
 set nocompatible " required by vim-polyglot (and probably other plugins too)
+
+lua <<EOF
+require('dap-go').setup()
+vim.fn.sign_define('DapBreakpoint', {text='●', texthl='Red', linehl='', numhl=''})
+vim.fn.sign_define('DapBreakpointCondition', {text='■', texthl='Blue', linehl='', numhl=''})
+vim.fn.sign_define('DapLogPoint', {text='⬢', texthl='Orange', linehl='', numhl=''})
+vim.fn.sign_define('DapStopped', {text='▲', texthl='Purple', linehl='', numhl=''})
+vim.fn.sign_define('DapBreakpointRejected', {text='⬟', texthl='Yellow', linehl='', numhl=''})
+EOF
 
 lua <<EOF
 local capabilities = require('cmp_nvim_lsp').update_capabilities(
@@ -86,9 +100,16 @@ lua <<EOF
 local cmp = require('cmp')
 
 cmp.setup({
-    -- REQUIRED - you must specify a snippet engine
-    expand = function(args)
+    enabled = function()
+        return vim.api.nvim_buf_get_option(0, "buftype") ~= "prompt"
+        or require("cmp_dap").is_dap_buffer()
     end,
+    -- REQUIRED - you must specify a snippet engine
+    snippet = {
+      expand = function(args)
+        vim.fn["UltiSnips#Anon"](args.body)
+      end,
+    },
     window = {
       completion = cmp.config.window.bordered(),
       documentation = cmp.config.window.bordered(),
@@ -97,8 +118,15 @@ cmp.setup({
       ['<C-U>'] = cmp.mapping.scroll_docs(-4),
       ['<C-D>'] = cmp.mapping.scroll_docs(4),
       ['<C-e>'] = cmp.mapping.abort(),
+      ['<Down>'] = function(fallback)
+        if cmp.visible() then cmp.select_next_item() else fallback() end
+      end,
+      ['<Up>'] = function(fallback)
+        if cmp.visible() then cmp.select_prev_item() else fallback() end
+      end,
       -- Accept currently selected item. Set `select` to `false` to only confirm
       -- explicitly selected items.
+      ['<Tab>'] = cmp.mapping.confirm({ select = false }),
       ['<CR>'] = cmp.mapping.confirm({ select = false }),
     }),
     sources = cmp.config.sources({
@@ -107,6 +135,7 @@ cmp.setup({
       { name = 'nvim_lsp_signature_help' },
       { name = 'tmux' },
       { name = 'emoji' },
+      { name = 'dap' },
     })
 })
 
@@ -179,6 +208,12 @@ if !has('nvim') | set ttymouse=xterm2 | endif
 set noshowmode
 if !has('gui_running') | set t_Co=256 | endif
 
+function! s:refresh_lightline()
+    call lightline#init()
+    call lightline#colorscheme()
+    call lightline#update()
+endfunction
+
 let g:lightline = {
 \   'colorscheme': 'gruvbox_material',
 \   'active': {
@@ -189,12 +224,6 @@ let g:lightline = {
 \     'gitbranch': 'FugitiveHead',
 \   },
 \ }
-
-function! s:refresh_lightline()
-    call lightline#init()
-    call lightline#colorscheme()
-    call lightline#update()
-endfunction
 
 " =============================================================================
 " Key mapping
@@ -239,19 +268,34 @@ vmap <silent> # :Commentary<CR>
 " opens a file manager navigation with lf
 nmap <silent> <C-E> <Cmd>Lf<CR>
 
-nmap <C-P> <Cmd>GFiles --cached --others<CR>
-nmap <C-S> <Cmd>Buffers<CR>
-nmap <C-F> <Cmd>Ag<CR>
+nmap <C-P> <Cmd>Telescope find_files<CR>
+nmap <C-S> <Cmd>Telescope buffers<CR>
+nmap <C-F> <Cmd>Telescope live_grep<CR>
+nmap <C-X> <Cmd>Telescope diagnostics<CR>
+nmap <C-M> <Cmd>Telescope help_tags<CR>
 
-" @@@ LSP shortcuts @@@
-nnoremap <silent> gd <Cmd>lua vim.lsp.buf.definition()<CR>
+nnoremap <silent> gd <Cmd>Telescope lsp_definitions<CR>
 nnoremap <silent> gD <Cmd>lua vim.lsp.buf.declaration()<CR>
-nnoremap <silent> gr <Cmd>lua vim.lsp.buf.references()<CR>
-nnoremap <silent> g/ <Cmd>lua vim.lsp.buf.workspace_symbol()<CR>
-nnoremap <silent> gT <Cmd>lua vim.lsp.buf.type_definition()<CR>
-nnoremap <silent> gi <Cmd>lua vim.lsp.buf.implementation()<CR>
+nnoremap <silent> gr <Cmd>Telescope lsp_references<CR>
+nnoremap <silent> g/ <Cmd>Telescope lsp_dynamic_workspace_symbols<CR>
+nnoremap <silent> gT <Cmd>Telescope lsp_type_definitions<CR>
+nnoremap <silent> gi <Cmd>Telescope lsp_implementations<CR>
 nnoremap <silent> K  <Cmd>lua vim.lsp.buf.hover()<CR>
-inoremap <silent> <C-Space> <Cmd> lua vim.lsp.buf.signature_help()<CR>
+inoremap <silent> <C-Space> <Cmd>lua vim.lsp.buf.signature_help()<CR>
+
+" TODO: is it possible to only map those when in debug mode? or maybe try using
+" F-keys
+" TODO: integrate debugging status in lightline
+nmap <silent> <Space>b <Cmd>lua require("dap").toggle_breakpoint()<CR>
+nmap <silent> <Space>B <Cmd>lua require("dap").toggle_breakpoint(vim.fn.input("Breakpoint condition: "))<CR>
+nmap <silent> <Space>n <Cmd>lua require("dap").step_over()<CR>
+nmap <silent> <Space>N <Cmd>lua require("dap").step_back()<CR>
+nmap <silent> <Space>i <Cmd>lua require("dap").step_into()<CR>
+nmap <silent> <Space>o <Cmd>lua require("dap").step_out()<CR>
+nmap <silent> <Space>d <Cmd>lua require("dap").step_out()<CR>
+nmap <silent> <Space>c <Cmd>lua require("dap").continue()<CR>
+nmap <silent> <Space>C <Cmd>lua require("dap").close()<CR>
+nmap <silent> <Space>r <Cmd>lua require("dap").repl.toggle()<CR>
 
 " =============================================================================
 " vim-dispatch
@@ -260,7 +304,6 @@ inoremap <silent> <C-Space> <Cmd> lua vim.lsp.buf.signature_help()<CR>
 autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
 
 " TODO: Shortcut to run test in REPL
-" TODO: fix damn ctrl-P to work outside of git repo
 " TODO: setup spell checking
 " TODO: checkout chad-looking https://github.com/tpope/vim-dadbod
 " TODO: look at these plugins:
