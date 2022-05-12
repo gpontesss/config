@@ -30,6 +30,8 @@ Plug 'sainnhe/gruvbox-material'
 Plug 'frazrepo/vim-rainbow'
 Plug 'sheerun/vim-polyglot'
 Plug 'p00f/nvim-ts-rainbow'
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
 
 Plug 'voldikss/vim-floaterm'
 Plug 'ptzz/lf.vim'
@@ -47,6 +49,7 @@ Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 
 Plug 'tpope/vim-fireplace'
+Plug 'tpope/vim-salve'
 Plug 'eraserhd/parinfer-rust', {'do': 'cargo build --release'}
 
 call plug#end()
@@ -73,20 +76,6 @@ lua <<EOF
 require('dapui').setup()
 require("nvim-dap-virtual-text").setup()
 require('dap-go').setup()
-vim.fn.sign_define(
-    'DapBreakpoint',
-    {text='*', texthl='Red', linehl='', numhl=''})
-vim.fn.sign_define(
-    'DapBreakpointCondition',
-    {text='*', texthl='Blue', linehl='', numhl=''})
-vim.fn.sign_define(
-    'DapLogPoint',
-    {text='*', texthl='Purple', linehl='', numhl=''})
-vim.fn.sign_define(
-    'DapStopped',
-    {text='*', texthl='Green', linehl='', numhl=''})
-vim.fn.sign_define(
-    'DapBreakpointRejected', {text='*', texthl='Yellow', linehl='', numhl=''})
 EOF
 
 lua <<EOF
@@ -95,6 +84,7 @@ local capabilities = require('cmp_nvim_lsp').update_capabilities(
 
 require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
 require('lspconfig').gopls.setup{ capabilities = capabilities }
+require('lspconfig').vimls.setup{ capabilities = capabilities }
 
 require('nvim-treesitter.configs').setup {
   highlight = {
@@ -122,8 +112,8 @@ require('nvim-treesitter.configs').setup {
   indent = { enable = true },
 } 
 EOF
-set foldmethod=expr
-set foldexpr=nvim_treesitter#foldexpr()
+" set foldmethod=expr
+" set foldexpr=nvim_treesitter#foldexpr()
 
 autocmd BufWritePre *.clj lua vim.lsp.buf.formatting()
 
@@ -299,6 +289,12 @@ nmap <silent> !! <Cmd>!!<CR>
 " remaps ctrl+C to ESC, for visual block substitution
 vnoremap <C-C> <ESC>
 
+nnoremap <silent> <C-Z> <C-W>\|<C-W>_
+nnoremap <silent> <C-G> <Cmd>Goyo<CR>
+
+autocmd! User GoyoEnter Limelight
+autocmd! User GoyoLeave Limelight!
+
 " justifies paragraph around cursor
 nmap <silent> gp gqap
 " toggles all lines selection to be (un)commented
@@ -310,17 +306,18 @@ nmap <silent> <C-E> <Cmd>Lf<CR>
 
 nmap <silent> gm <Cmd>TSHighlightCapturesUnderCursor<CR>
 
-nmap <C-P> <Cmd>Telescope find_files hidden=true<CR>
-nmap <C-S> <Cmd>Telescope buffers<CR>
-nmap <C-F> <Cmd>Telescope live_grep<CR>
-nmap <C-X> <Cmd>Telescope diagnostics<CR>
-nmap <C-X> <Cmd>Telescope diagnostics bufnr=0<CR>
-nmap <C-M> <Cmd>Telescope help_tags<CR>
+nnoremap <silent> <C-P> <Cmd>Telescope find_files hidden=true<CR>
+nnoremap <silent> <C-S> <Cmd>Telescope buffers<CR>
+nnoremap <silent> <C-F> <Cmd>Telescope live_grep<CR>
+nnoremap <silent> <C-X> <Cmd>Telescope diagnostics<CR>
+nnoremap <silent> <C-X> <Cmd>Telescope diagnostics bufnr=0<CR>
+nnoremap <silent> <C-M> <Cmd>Telescope help_tags<CR>
 
 nnoremap <silent> gd <Cmd>Telescope lsp_definitions<CR>
 nnoremap <silent> gD <Cmd>lua vim.lsp.buf.declaration()<CR>
-nnoremap <silent> gr <Cmd>Telescope lsp_references<CR>
 nnoremap <silent> g/ <Cmd>Telescope lsp_dynamic_workspace_symbols<CR>
+nnoremap <silent> g? <Cmd>Telescope lsp_document_symbols<CR>
+nnoremap <silent> gr <Cmd>Telescope lsp_references<CR>
 nnoremap <silent> gT <Cmd>Telescope lsp_type_definitions<CR>
 nnoremap <silent> gi <Cmd>Telescope lsp_implementations<CR>
 nnoremap <silent> K  <Cmd>lua vim.lsp.buf.hover()<CR>
@@ -349,22 +346,38 @@ nmap <silent> <F2>r <Cmd>lua require("dap").repl.toggle()<CR>
 autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
 
 " =============================================================================
-" highlight corrections (tree-sitter)
+" highlights and signs
 " =============================================================================
 
 highligh TSFunction ctermfg=Yellow
 highligh TSNumber ctermfg=DarkCyan
 highlight TSSymbol ctermfg=DarkBlue cterm=italic
+highlight TSType ctermfg=67 cterm=italic
 highlight link TSFuncBuiltin TSFunction
 highlight link TSFuncMacro TSConditional
 highlight link TSKeywordOperator TSFunction
+highlight TSVariable ctermfg=Fg
+highlight TSBoolean ctermfg=132
+highlight TSString ctermfg=75
+highlight link TSMethod TSSymbol
+highlight TSOperator ctermfg=136
+highlight link TSProperty TSSymbol
+highlight TSParameter ctermfg=222
+
+sign define DapBreakpoint text=* texthl=Red
+sign define DapBreakpointCondition text=* texthl=Blue
+sign define DapLogPoint text=* texthl=Purple
+sign define DapStopped text=* texthl=Green
+sign define DapBreakpointRejected text=* texthl=Yellow
+
+autocmd BufEnter go.mod set filetype=gomod
+
 
 
 " TODO: Shortcut to run test in REPL
 " TODO: setup spell checking
 " TODO: checkout chad-looking https://github.com/tpope/vim-dadbod
 " TODO: look at these plugins:
-" + https://github.com/clojure-vim/vim-jack-in
 " + https://www.cognitect.com/blog/2017/4/17/clojure-for-neovim-for-clojure
 " + https://github.com/Olical/conjure
 " + https://github.com/guns/vim-sexp
