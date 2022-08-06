@@ -29,8 +29,7 @@
 [pull]
 	ff = only
 [commit]
-    # TODO: fix it (apparently the key expired and needs to be renewed)
-	gpgsign = false
+	gpgsign = true
 [gpg]
 	program = gpg
 [url "git@github.com:gpontesss/"]
