@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e errexit
+
 # Lists daily Scripture reading according to the Orthodox calendar.
 
 day="$(date +"%d")"
@@ -7,7 +9,9 @@ month="$(date +"%m")"
 year="$(date +"%Y")"
 
 echo "Christos Anesti!"
-echo "Scripture readings of the day: ($(date -I))"
-echo "https://www.oca.org/readings/daily/"$year"/$month/$day/"
+link="https://www.oca.org/readings/daily/$year/$month/$day/"
+echo "Scripture readings of the day: ($link)"
 
-
+curl "$link" --silent \
+    | htmlq "#main section ul li a" --text \
+    | awk '{ print "  * " $0 }'
