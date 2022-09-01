@@ -7,7 +7,7 @@ __err() { echo -e "$@" 1>&2 ; }
 __errexit() { __err "$@" ; exit 1 ; }
 __git() { git -C "$CFG_DIR" "$@" ; }
 
-cmd.edit() { "$EDITOR" "$CFG_DIR" ; }
+cmd.edit() { cd "$CFG_DIR" ; exec "$EDITOR" "$CFG_DIR" ; }
 
 cmd.sync() {
     local remote="${1:-origin}"
