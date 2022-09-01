@@ -1,4 +1,4 @@
-call plug#begin('~/.vim/plugged')
+call plug#begin('~/.local/share/vim/plugged')
 
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -51,6 +51,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-fireplace'
 Plug 'tpope/vim-salve'
 Plug 'eraserhd/parinfer-rust', {'do': 'cargo build --release'}
+Plug 'Olical/conjure'
 
 call plug#end()
 
@@ -85,6 +86,8 @@ local capabilities = require('cmp_nvim_lsp').update_capabilities(
 require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
 require('lspconfig').gopls.setup{ capabilities = capabilities }
 require('lspconfig').vimls.setup{ capabilities = capabilities }
+require('lspconfig').texlab.setup{ capabilities = capabilities }
+require('lspconfig').marksman.setup{ capabilities = capabilities }
 
 require('nvim-treesitter.configs').setup {
   highlight = {
@@ -112,10 +115,12 @@ require('nvim-treesitter.configs').setup {
   indent = { enable = true },
 } 
 EOF
+
 " set foldmethod=expr
 " set foldexpr=nvim_treesitter#foldexpr()
 
 autocmd BufWritePre *.clj lua vim.lsp.buf.formatting()
+autocmd BufWritePre *.go  lua vim.lsp.buf.formatting()
 
 lua <<EOF
 local cmp = require('cmp')
@@ -202,8 +207,10 @@ set shiftwidth=4
 set hidden
 set autowrite
 " set spell
+set whichwrap+=<,>,h,l
 
 let g:lf_replace_netrw = 1
+let g:floaterm_opener = 'edit'
 
 set background=dark
 let g:gruvbox_material_background = 'medium'
@@ -261,14 +268,14 @@ nmap <space><space> :b#<CR>
 " clipboard copy/paste (for both normal/visual modes)
 if has("mac")
     nmap <silent> <leader><C-C> "*y
-    vmap <silent> <C-C>         "*y
+    vmap <silent> <leader><C-C> "*y
     nmap <silent> <leader><C-V> "*p
-    vmap <silent> <C-V>         "*p
+    vmap <silent> <leader><C-V> "*p
 else
     nmap <silent> <leader><C-C> "+y
-    vmap <silent> <C-C>         "+y
+    vmap <silent> <leader><C-C> "+y
     nmap <silent> <leader><C-V> "+p
-    vmap <silent> <C-V>         "+p
+    vmap <silent> <leader><C-V> "+p
 endif
 
 " Closes current buffer and goes to previous one
@@ -282,18 +289,18 @@ nmap <silent> <leader>R
     \ call <SID>refresh_lightline() <Bar>
     \ echo "vimrc reloaded"<CR>
 
-" Invokes make
-nmap M <Cmd>!make<CR>
+nmap `m <Cmd>Dispatch!<CR>
+nmap `M <Cmd>Make!<CR>
 " repeats last command executed in vim's shell
 nmap <silent> !! <Cmd>!!<CR>
 " remaps ctrl+C to ESC, for visual block substitution
 vnoremap <C-C> <ESC>
 
 nnoremap <silent> <C-Z> <C-W>\|<C-W>_
-nnoremap <silent> <C-G> <Cmd>Goyo<CR>
+nnoremap <silent> <C-G><C-G> <Cmd>Goyo<CR>
 
-autocmd! User GoyoEnter Limelight
-autocmd! User GoyoLeave Limelight!
+" autocmd! User GoyoEnter Limelight
+" autocmd! User GoyoLeave Limelight!
 
 " justifies paragraph around cursor
 nmap <silent> gp gqap
@@ -339,11 +346,30 @@ nmap <silent> <F2>c <Cmd>lua require("dap").continue()<CR>
 nmap <silent> <F2>C <Cmd>lua require("dap").close()<CR>
 nmap <silent> <F2>r <Cmd>lua require("dap").repl.toggle()<CR>
 
+nnoremap <silent> <C-G>a <Cmd>Git add %<CR>
+nnoremap <silent> <C-G>p <Cmd>Git push<CR>
+nnoremap <silent> <C-G>P <Cmd>Git pull --prune<CR>
+nnoremap <silent> <C-G>c <Cmd>Git commit --verbose<CR>
+nnoremap <silent> <C-G>s <Cmd>Telescope git_status<CR>
+nnoremap <silent> <C-G>C <Cmd>Telescope git_branches<CR>
+nnoremap <silent> <C-G>b <Cmd>Git checkout -b 
+nnoremap <silent> <C-G>B <Cmd>Git blame<CR>
+nnoremap <silent> <C-G>l <cmd>telescope git_commits<cr>
+nnoremap <silent> <C-G>L <cmd>Gclog<cr>
+" TODO: open selection for branch/commit to compare with
+nnoremap <silent> <C-G>d <Cmd>Git diff origin/HEAD %<CR>
+
 " =============================================================================
 " vim-dispatch
 " =============================================================================
 
-autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
+" xelatex is required to use foreign characters
+autocmd FileType markdown let b:dispatch = 'pandoc % --pdf-engine=xelatex -o "$(dirname %)/$(basename % .md).pdf"'
+autocmd FileType tex      let b:dispatch = 'xelatex "%"'
+
+" TODO: switch it according to filetype. (md, tex, etc.) also, try to search
+" file in subdirectories.
+nnoremap <silent> `o <Cmd>!zathura "$(dirname  %)/$(basename $(basename % .md) .tex).pdf" &<CR>
 
 " =============================================================================
 " highlights and signs
@@ -371,8 +397,6 @@ sign define DapStopped text=* texthl=Green
 sign define DapBreakpointRejected text=* texthl=Yellow
 
 autocmd BufEnter go.mod set filetype=gomod
-
-
 
 " TODO: Shortcut to run test in REPL
 " TODO: setup spell checking

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+DIR="$HOME/media/videos/yt"
+
+youtube-dl \
+    --add-metadata \
+    --ignore-errors \
+    --continue \
+    --output "$DIR/%(title)s.%(ext)s" \
+    "$@"

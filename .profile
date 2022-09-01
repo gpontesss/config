@@ -1,7 +1,16 @@
 #Set our umask
 umask 022
 
-export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
+export BROWSER=brave
+export TERMINAL=alacritty
+export SHELL=bash
+export EDITOR=nvim
+export VISUAL=nvim
+
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="${XDG_DATA_HOME}/cache"
+export XDG_CONFIG_DIRS="/usr/etc/xdg:/etc/xdg"
 
 PATH="$PATH:/usr/local/sbin"
 PATH="$PATH:/usr/local/bin"
@@ -14,26 +23,19 @@ PATH="$PATH:$GOPATH/bin"
 
 export PATH
 
-export BROWSER=/usr/bin/firefox
-export TERMINAL=/usr/bin/alacritty
-
-export EDITOR=/usr/bin/nvim
-export VISUAL=/usr/bin/nvim
-export SHELL=/bin/bash
-
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_CACHE_HOME="$HOME/.cache"
-export XDG_CONFIG_DIRS=/usr/etc/xdg:/etc/xdg
-
-export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
-
-export TEXMFHOME=$XDG_CONFIG_HOME/texmf
-
+export CFG_DIR="$HOME/git/config"
+export GOPATH="${XDG_DATA_HOME}/go"
+export CARGO_HOME="$XDG_DATA_HOME/cargo"
+export TEXMFHOME="$XDG_CONFIG_HOME/texmf"
 export JAVA_HOME="/usr/lib/jvm/java-8-openjdk"
+export ANDROID_SDK_HOME="$XDG_CONFIG_HOME/android"
 export ANDROID_SDK_ROOT="/opt/android-sdk"
+export PASSWORD_STORE_DIR="$XDG_DATA_HOME/pass"
+export GNUPGHOME="$XDG_DATA_HOME/gnupg"
 
 # needed by flutter
 export CHROME_EXECUTABLE="$(which chromium)"
 
 source $HOME/.bashrc
+
+[[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet --dir "$XDG_CACHE_HOME/keychain")

@@ -97,11 +97,13 @@ shopt -s expand_aliases
 # Enable history appending instead of overwriting.  #139609
 shopt -s histappend
 
+export HISTFILE="$XDG_CACHE_HOME/bash_history"
+
 # TODO: make it OS sensible
-# alias cp="cp -i"                          # confirm before overwriting something
-# alias df='df -h'                          # human-readable sizes
-# alias free='free -m'                      # show sizes in MB
-# alias more=less
+alias cp="cp -i"                          # confirm before overwriting something
+alias df='df -h'                          # human-readable sizes
+alias free='free -m'                      # show sizes in MB
+alias more=less
 
 # for all your nvim needs
 alias \
@@ -115,4 +117,19 @@ alias spt="startspt"
 alias yt="youtube-dl --add-metadata -i"
 alias yta="yt -x -f bestaudio/best"
 
-[[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/gpontesss/.local/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/gpontesss/.local/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/gpontesss/.local/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/gpontesss/.local/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
