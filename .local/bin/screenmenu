@@ -9,3 +9,4 @@ layout="$(ls "$layouts_dir" \
             | dmenu -p "Screen layout")"
 "$layouts_dir/$layout"
 
+hsetroot -cover $HOME/img/wallpaper.png
