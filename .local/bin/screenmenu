@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Queries for existent screen layout scripts (localized at
+# $XDG_DATA_HOME/screen-layouts) and prompts for user selection through dmenu.
+
+layouts_dir="$XDG_DATA_HOME/screen-layouts"
+
+layout="$(ls "$layouts_dir" \
+            | dmenu -p "Screen layout")"
+"$layouts_dir/$layout"
+

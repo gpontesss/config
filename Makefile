@@ -1,4 +1,6 @@
-DOTS_SRC = .config .local .tmux.conf .Xresources .profile .bashrc
+SCRIPT_DST = /usr/local/bin
+
+DOTS_SRC = .config .local .tmux.conf .profile .bashrc
 DOTS_DST = $(HOME)
 DOTS_TARGETS = $(addprefix $(DOTS_DST)/,$(shell find $(DOTS_SRC) -type f))
 
@@ -10,7 +12,11 @@ TRANSMISSION_HOME = /var/lib/transmission/.config/transmission-daemon
 TRANSMISSION_TARGETS  = $(TRANSMISSION_HOME)/settings.json
 
 .PHONY: all
-all: dotfiles acpi transmission
+all: $(SCRIPT_DST)/cfg dotfiles acpi transmission
+
+$(SCRIPT_DST)/cfg: cfg
+	@echo "Installing cfg script"
+	@ln -fs $(abspath $^) $@
 
 dotfiles: $(DOTS_TARGETS)
 

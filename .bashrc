@@ -97,11 +97,13 @@ shopt -s expand_aliases
 # Enable history appending instead of overwriting.  #139609
 shopt -s histappend
 
+export HISTFILE="$XDG_CACHE_HOME/bash_history"
+
 # TODO: make it OS sensible
-# alias cp="cp -i"                          # confirm before overwriting something
-# alias df='df -h'                          # human-readable sizes
-# alias free='free -m'                      # show sizes in MB
-# alias more=less
+alias cp="cp -i"                          # confirm before overwriting something
+alias df='df -h'                          # human-readable sizes
+alias free='free -m'                      # show sizes in MB
+alias more=less
 
 # for all your nvim needs
 alias \
@@ -125,4 +127,3 @@ if [[ "$OSTYPE" = "darwin"* ]]; then
 fi
 
 [[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)
-

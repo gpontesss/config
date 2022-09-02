@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Brave
+Exec=/usr/bin/env brave %U

@@ -1,4 +1,4 @@
-call plug#begin('~/.vim/plugged')
+call plug#begin('~/.local/share/vim/plugged')
 
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -51,6 +51,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-salve'
 Plug 'Olical/conjure'
 Plug 'eraserhd/parinfer-rust', {'do': 'cargo build --release'}
+Plug 'Olical/conjure'
 
 call plug#end()
 
@@ -86,6 +87,8 @@ require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
 require('lspconfig').gopls.setup{ capabilities = capabilities }
 require('lspconfig').vimls.setup{ capabilities = capabilities }
 require('lspconfig').pylsp.setup{}
+require('lspconfig').texlab.setup{ capabilities = capabilities }
+require('lspconfig').marksman.setup{ capabilities = capabilities }
 
 require('nvim-treesitter.configs').setup {
   highlight = {
@@ -113,11 +116,13 @@ require('nvim-treesitter.configs').setup {
   indent = { enable = true },
 } 
 EOF
+
 " set foldmethod=expr
 " set foldexpr=nvim_treesitter#foldexpr()
 
 autocmd BufWritePre *.clj lua vim.lsp.buf.formatting()
 autocmd BufWritePre *.py  lua vim.lsp.buf.formatting()
+autocmd BufWritePre *.go  lua vim.lsp.buf.formatting()
 
 lua <<EOF
 local cmp = require('cmp')
@@ -208,8 +213,10 @@ set shiftwidth=4
 set hidden
 set autowrite
 " set spell
+set whichwrap+=<,>,h,l
 
 let g:lf_replace_netrw = 1
+let g:floaterm_opener = 'edit'
 
 set background=dark
 let g:gruvbox_material_background = 'medium'
@@ -295,16 +302,22 @@ nmap <silent> <leader>X <Cmd>!./%<CR>
 nmap <silent> <leader>x /```shell<CR>Nj<S-V>/```<CR>k:!bash<CR>
 
 " Invokes make
-nmap `d <Cmd>Dispatch!<CR>
 " TODO: Only works for mac; switch definition between OSes
-nmap `o <Cmd>!open "$(dirname %)/$(basename % .md).pdf"<CR>
+nnoremap <silent> `o <Cmd>!open "$(dirname %)/$(basename % .md).pdf"<CR>
+nnoremap <silent> `o <Cmd>!zathura "$(dirname  %)/$(basename $(basename % .md) .tex).pdf" &<CR>
+nmap `d <Cmd>Dispatch!<CR>
+nmap `m <Cmd>Dispatch!<CR>
+nmap `M <Cmd>Make!<CR>
 " repeats last command executed in vim's shell
 nmap <silent> !! <Cmd>!!<CR>
 " remaps ctrl+C to ESC, for visual block substitution
 vnoremap <C-C> <ESC>
 
 nnoremap <silent> <C-Z> <C-W>\|<C-W>_
-" nnoremap <silent> <C-G> <Cmd>Goyo<CR>
+nnoremap <silent> <C-G><C-G> <Cmd>Goyo<CR>
+
+" autocmd! User GoyoEnter Limelight
+" autocmd! User GoyoLeave Limelight!
 
 " justifies paragraph around cursor
 nmap <silent> gp gqap
@@ -353,9 +366,21 @@ nmap <silent> <F2>c <Cmd>lua require("dap").continue()<CR>
 nmap <silent> <F2>C <Cmd>lua require("dap").close()<CR>
 nmap <silent> <F2>r <Cmd>lua require("dap").repl.toggle()<CR>
 
-nmap <silent> <C-g>s <Cmd>Telescope git_status<CR>
-nmap <silent> <c-g>a <cmd>Git add %<cr>
-nmap <silent> <c-g>u <cmd>Git diff --name-only --diff-filter=U --relative<cr>
+nnoremap <silent> <C-g>s <Cmd>Telescope git_status<CR>
+nnoremap <silent> <c-g>a <cmd>Git add %<cr>
+nnoremap <silent> <c-g>u <cmd>Git diff --name-only --diff-filter=U --relative<cr>
+nnoremap <silent> <C-G>a <Cmd>Git add %<CR>
+nnoremap <silent> <C-G>p <Cmd>Git push<CR>
+nnoremap <silent> <C-G>P <Cmd>Git pull --prune<CR>
+nnoremap <silent> <C-G>c <Cmd>Git commit --verbose<CR>
+nnoremap <silent> <C-G>s <Cmd>Telescope git_status<CR>
+nnoremap <silent> <C-G>C <Cmd>Telescope git_branches<CR>
+nnoremap <silent> <C-G>b <Cmd>Git checkout -b 
+nnoremap <silent> <C-G>B <Cmd>Git blame<CR>
+nnoremap <silent> <C-G>l <cmd>Telescope git_commits<cr>
+nnoremap <silent> <C-G>L <cmd>Gclog<cr>
+" TODO: open selection for branch/commit to compare with
+nnoremap <silent> <C-G>d <Cmd>Git diff origin/HEAD %<CR>
 
 autocmd FileType clojure nnoremap <buffer> <leader>T
     \ <Cmd>ConjureCljRefreshChanged<CR>
@@ -376,7 +401,11 @@ let g:conjure#client#clojure#nrepl#test#current_form_names = ['deftest', 'defflo
 " vim-dispatch
 " =============================================================================
 
-autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(dirname %)/$(basename % .md).pdf"'
+autocmd FileType markdown let b:dispatch = 'pandoc % --pdf-engine=xelatex -o "$(dirname %)/$(basename % .md).pdf"'
+autocmd FileType tex      let b:dispatch = 'xelatex "%"'
+
+" TODO: switch it according to filetype. (md, tex, etc.) also, try to search
+" file in subdirectories.
 
 " =============================================================================
 " highlights and signs

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Prompts for a word and shows dictionary result in a floating window.
+# Floating window should be detected by WM by class/instance. (Alacritty/Dict)
+# Dictionary query is done with dictd.
+# Prompt is done with dmenu.
+# Floating terminal uses alacritty.
+
+word=$(dmenu -p 'Search word:')
+alacritty \
+    --class "Dict" \
+    --command "bash" "-c" "dict '$word' | less"

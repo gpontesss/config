@@ -18,7 +18,6 @@
 # move this configuration file from ~/.taskrc to ~/.config/task/taskrc and uncomment below
 
 data.location=~/.local/share/task
-hooks.location=~/.config/task/hooks
 
 # Color theme (uncomment one to use)
 #include light-16.theme
@@ -35,3 +34,4 @@ hooks.location=~/.config/task/hooks
 #include solarized-dark-256.theme
 #include solarized-light-256.theme
 #include no-color.theme
+news.version=2.6.0

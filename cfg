@@ -1,0 +1,26 @@
+#!/bin/bash
+
+EDITOR="${EDITOR:-vi}"
+CFG_DIR="${CFG_DIR:-$HOME/git/config}"
+
+__err() { echo -e "$@" 1>&2 ; }
+__errexit() { __err "$@" ; exit 1 ; }
+__git() { git -C "$CFG_DIR" "$@" ; }
+
+cmd.edit() { cd "$CFG_DIR" ; exec "$EDITOR" "$CFG_DIR" ; }
+
+cmd.sync() {
+    local remote="${1:-origin}"
+    if __git status --short > /dev/null; then
+        __git add --all
+        __git commit --verbose
+        __git push -u "$remote"
+    fi
+    __git pull --prune
+}
+
+case "$1" in
+    edit) shift; cmd.edit "$@" ;;
+    sync) shift; cmd.sync "$@" ;;
+    *) __errexit "Unknown command '$1'" ;;
+esac
