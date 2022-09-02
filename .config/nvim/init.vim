@@ -48,8 +48,8 @@ Plug 'benmills/vimux'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 
-Plug 'tpope/vim-fireplace'
 Plug 'tpope/vim-salve'
+Plug 'Olical/conjure'
 Plug 'eraserhd/parinfer-rust', {'do': 'cargo build --release'}
 
 call plug#end()
@@ -85,6 +85,7 @@ local capabilities = require('cmp_nvim_lsp').update_capabilities(
 require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
 require('lspconfig').gopls.setup{ capabilities = capabilities }
 require('lspconfig').vimls.setup{ capabilities = capabilities }
+require('lspconfig').pylsp.setup{}
 
 require('nvim-treesitter.configs').setup {
   highlight = {
@@ -116,6 +117,7 @@ EOF
 " set foldexpr=nvim_treesitter#foldexpr()
 
 autocmd BufWritePre *.clj lua vim.lsp.buf.formatting()
+autocmd BufWritePre *.py  lua vim.lsp.buf.formatting()
 
 lua <<EOF
 local cmp = require('cmp')
@@ -145,9 +147,14 @@ cmp.setup({
       ['<Up>'] = function(fallback)
         if cmp.visible() then cmp.select_prev_item() else fallback() end
       end,
+      ['<S-Tab>'] = function(fallback)
+        if cmp.visible() then cmp.select_prev_item() else fallback() end
+      end,
+      ['<Tab>'] = function(fallback)
+        if cmp.visible() then cmp.select_next_item() else fallback() end
+      end,
       -- Accept currently selected item. Set `select` to `false` to only confirm
       -- explicitly selected items.
-      ['<Tab>'] = cmp.mapping.confirm({ select = false }),
       ['<CR>'] = cmp.mapping.confirm({ select = false }),
     }),
     sources = cmp.config.sources({
@@ -183,7 +190,6 @@ filetype plugin indent on
 set number
 set wildmenu
 set nohlsearch
-set wrap
 set laststatus=3
 
 set colorcolumn=81
@@ -254,21 +260,22 @@ let g:lightline = {
 " disabled
 let g:fireplace_no_maps = 1
 
-let mapleader = '\'
+let mapleader = nr2char(13) " uses 'enter' the leader
+
 " switches to previous buffer
 nmap <space><space> :b#<CR>
 
 " clipboard copy/paste (for both normal/visual modes)
 if has("mac")
     nmap <silent> <leader><C-C> "*y
-    vmap <silent> <C-C>         "*y
+    vmap <silent> <leader><C-C> "*y
     nmap <silent> <leader><C-V> "*p
-    vmap <silent> <C-V>         "*p
+    vmap <silent> <leader><C-V> "*p
 else
     nmap <silent> <leader><C-C> "+y
-    vmap <silent> <C-C>         "+y
+    vmap <silent> <leader><C-C> "+y
     nmap <silent> <leader><C-V> "+p
-    vmap <silent> <C-V>         "+p
+    vmap <silent> <leader><C-V> "+p
 endif
 
 " Closes current buffer and goes to previous one
@@ -282,18 +289,22 @@ nmap <silent> <leader>R
     \ call <SID>refresh_lightline() <Bar>
     \ echo "vimrc reloaded"<CR>
 
+nmap <silent> <leader>w <Cmd>set wrap!<CR>
+vmap <silent> <leader>x :!bash<CR>
+nmap <silent> <leader>X <Cmd>!./%<CR>
+nmap <silent> <leader>x /```shell<CR>Nj<S-V>/```<CR>k:!bash<CR>
+
 " Invokes make
-nmap M <Cmd>!make<CR>
+nmap `d <Cmd>Dispatch!<CR>
+" TODO: Only works for mac; switch definition between OSes
+nmap `o <Cmd>!open "$(dirname %)/$(basename % .md).pdf"<CR>
 " repeats last command executed in vim's shell
 nmap <silent> !! <Cmd>!!<CR>
 " remaps ctrl+C to ESC, for visual block substitution
 vnoremap <C-C> <ESC>
 
 nnoremap <silent> <C-Z> <C-W>\|<C-W>_
-nnoremap <silent> <C-G> <Cmd>Goyo<CR>
-
-autocmd! User GoyoEnter Limelight
-autocmd! User GoyoLeave Limelight!
+" nnoremap <silent> <C-G> <Cmd>Goyo<CR>
 
 " justifies paragraph around cursor
 nmap <silent> gp gqap
@@ -303,6 +314,9 @@ vmap <silent> # :Commentary<CR>
 
 " opens a file manager navigation with lf
 nmap <silent> <C-E> <Cmd>Lf<CR>
+
+nnoremap <silent> <leader>gd <Cmd>vert Git diff %<CR>
+nnoremap <silent> <leader>gd <Cmd>vert Git diff %<CR>
 
 nmap <silent> gm <Cmd>TSHighlightCapturesUnderCursor<CR>
 
@@ -339,11 +353,30 @@ nmap <silent> <F2>c <Cmd>lua require("dap").continue()<CR>
 nmap <silent> <F2>C <Cmd>lua require("dap").close()<CR>
 nmap <silent> <F2>r <Cmd>lua require("dap").repl.toggle()<CR>
 
+nmap <silent> <C-g>s <Cmd>Telescope git_status<CR>
+nmap <silent> <c-g>a <cmd>Git add %<cr>
+nmap <silent> <c-g>u <cmd>Git diff --name-only --diff-filter=U --relative<cr>
+
+autocmd FileType clojure nnoremap <buffer> <leader>T
+    \ <Cmd>ConjureCljRefreshChanged<CR>
+    \ <Cmd>ConjureLogResetSoft<CR>
+    \ <Cmd>ConjureCljRunCurrentTest<CR>
+    \ <Cmd>ConjureLogBuf<CR>
+
+" =============================================================================
+" Conjure
+" =============================================================================
+"
+let g:conjure#mapping#doc_word = v:false
+let g:conjure#mapping#def_word = v:false
+" adds support for running state-flow tests
+let g:conjure#client#clojure#nrepl#test#current_form_names = ['deftest', 'defflow']
+
 " =============================================================================
 " vim-dispatch
 " =============================================================================
 
-autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(basename % .md).pdf"'
+autocmd FileType markdown let b:dispatch = 'pandoc % -o "$(dirname %)/$(basename % .md).pdf"'
 
 " =============================================================================
 " highlights and signs
@@ -373,13 +406,9 @@ sign define DapBreakpointRejected text=* texthl=Yellow
 autocmd BufEnter go.mod set filetype=gomod
 
 
-
-" TODO: Shortcut to run test in REPL
 " TODO: setup spell checking
-" TODO: checkout chad-looking https://github.com/tpope/vim-dadbod
 " TODO: look at these plugins:
-" + https://www.cognitect.com/blog/2017/4/17/clojure-for-neovim-for-clojure
-" + https://github.com/Olical/conjure
+" + https://github.com/tpope/vim-dadbod
 " + https://github.com/guns/vim-sexp
 
 " For reference: https://github.com/nanotee/nvim-lua-guide
