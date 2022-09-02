@@ -115,4 +115,14 @@ alias spt="startspt"
 alias yt="youtube-dl --add-metadata -i"
 alias yta="yt -x -f bestaudio/best"
 
+if [[ "$OSTYPE" = "darwin"* ]]; then
+    # workaround for work computer
+    alias gh="GITHUB_TOKEN= gh"
+    alias date="gdate"
+    alias find="gfind"
+    # TODO: fix it to correctly use .profile on mac
+    export PATH="$PATH:$HOME/.local/bin"
+fi
+
 [[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)
+
