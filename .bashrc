@@ -124,6 +124,7 @@ if [[ "$OSTYPE" = "darwin"* ]]; then
     alias find="gfind"
     # TODO: fix it to correctly use .profile on mac
     export PATH="$PATH:$HOME/.local/bin"
+    export GPG_TTY="$(tty)" # for some reason, my OSX refuses to work without it
 fi
 
 [[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)
