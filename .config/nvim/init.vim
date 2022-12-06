@@ -80,7 +80,7 @@ require('dap-go').setup()
 EOF
 
 lua <<EOF
-local capabilities = require('cmp_nvim_lsp').update_capabilities(
+local capabilities = require('cmp_nvim_lsp').default_capabilities(
     vim.lsp.protocol.make_client_capabilities())
 
 require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
@@ -433,6 +433,16 @@ sign define DapStopped text=* texthl=Green
 sign define DapBreakpointRejected text=* texthl=Yellow
 
 autocmd BufEnter go.mod set filetype=gomod
+
+
+" =============================================================================
+" zet plugin draft
+" =============================================================================
+
+let zet_dir = $ZET_DIR
+if empty(zet_dir)
+    let zet_dir = $HOME . '/zet'
+endif
 
 
 " TODO: setup spell checking
