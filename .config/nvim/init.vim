@@ -48,8 +48,8 @@ Plug 'benmills/vimux'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 
-Plug 'tpope/vim-fireplace'
 Plug 'tpope/vim-salve'
+Plug 'Olical/conjure'
 Plug 'eraserhd/parinfer-rust', {'do': 'cargo build --release'}
 Plug 'Olical/conjure'
 
@@ -80,12 +80,13 @@ require('dap-go').setup()
 EOF
 
 lua <<EOF
-local capabilities = require('cmp_nvim_lsp').update_capabilities(
+local capabilities = require('cmp_nvim_lsp').default_capabilities(
     vim.lsp.protocol.make_client_capabilities())
 
 require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
 require('lspconfig').gopls.setup{ capabilities = capabilities }
 require('lspconfig').vimls.setup{ capabilities = capabilities }
+require('lspconfig').pylsp.setup{}
 require('lspconfig').texlab.setup{ capabilities = capabilities }
 require('lspconfig').marksman.setup{ capabilities = capabilities }
 
@@ -120,6 +121,7 @@ EOF
 " set foldexpr=nvim_treesitter#foldexpr()
 
 autocmd BufWritePre *.clj lua vim.lsp.buf.formatting()
+autocmd BufWritePre *.py  lua vim.lsp.buf.formatting()
 autocmd BufWritePre *.go  lua vim.lsp.buf.formatting()
 
 lua <<EOF
@@ -150,9 +152,14 @@ cmp.setup({
       ['<Up>'] = function(fallback)
         if cmp.visible() then cmp.select_prev_item() else fallback() end
       end,
+      ['<S-Tab>'] = function(fallback)
+        if cmp.visible() then cmp.select_prev_item() else fallback() end
+      end,
+      ['<Tab>'] = function(fallback)
+        if cmp.visible() then cmp.select_next_item() else fallback() end
+      end,
       -- Accept currently selected item. Set `select` to `false` to only confirm
       -- explicitly selected items.
-      ['<Tab>'] = cmp.mapping.confirm({ select = false }),
       ['<CR>'] = cmp.mapping.confirm({ select = false }),
     }),
     sources = cmp.config.sources({
@@ -188,7 +195,6 @@ filetype plugin indent on
 set number
 set wildmenu
 set nohlsearch
-set wrap
 set laststatus=3
 
 set colorcolumn=81
@@ -261,7 +267,8 @@ let g:lightline = {
 " disabled
 let g:fireplace_no_maps = 1
 
-let mapleader = '\'
+let mapleader = nr2char(13) " uses 'enter' the leader
+
 " switches to previous buffer
 nmap <space><space> :b#<CR>
 
@@ -289,6 +296,16 @@ nmap <silent> <leader>R
     \ call <SID>refresh_lightline() <Bar>
     \ echo "vimrc reloaded"<CR>
 
+nmap <silent> <leader>w <Cmd>set wrap!<CR>
+vmap <silent> <leader>x :!bash<CR>
+nmap <silent> <leader>X <Cmd>!./%<CR>
+nmap <silent> <leader>x /```shell<CR>Nj<S-V>/```<CR>k:!bash<CR>
+
+" Invokes make
+" TODO: Only works for mac; switch definition between OSes
+nnoremap <silent> `o <Cmd>!open "$(dirname %)/$(basename % .md).pdf"<CR>
+nnoremap <silent> `o <Cmd>!zathura "$(dirname  %)/$(basename $(basename % .md) .tex).pdf" &<CR>
+nmap `d <Cmd>Dispatch!<CR>
 nmap `m <Cmd>Dispatch!<CR>
 nmap `M <Cmd>Make!<CR>
 " repeats last command executed in vim's shell
@@ -310,6 +327,9 @@ vmap <silent> # :Commentary<CR>
 
 " opens a file manager navigation with lf
 nmap <silent> <C-E> <Cmd>Lf<CR>
+
+nnoremap <silent> <leader>gd <Cmd>vert Git diff %<CR>
+nnoremap <silent> <leader>gd <Cmd>vert Git diff %<CR>
 
 nmap <silent> gm <Cmd>TSHighlightCapturesUnderCursor<CR>
 
@@ -346,6 +366,9 @@ nmap <silent> <F2>c <Cmd>lua require("dap").continue()<CR>
 nmap <silent> <F2>C <Cmd>lua require("dap").close()<CR>
 nmap <silent> <F2>r <Cmd>lua require("dap").repl.toggle()<CR>
 
+nnoremap <silent> <C-g>s <Cmd>Telescope git_status<CR>
+nnoremap <silent> <c-g>a <cmd>Git add %<cr>
+nnoremap <silent> <c-g>u <cmd>Git diff --name-only --diff-filter=U --relative<cr>
 nnoremap <silent> <C-G>a <Cmd>Git add %<CR>
 nnoremap <silent> <C-G>p <Cmd>Git push<CR>
 nnoremap <silent> <C-G>P <Cmd>Git pull --prune<CR>
@@ -354,22 +377,35 @@ nnoremap <silent> <C-G>s <Cmd>Telescope git_status<CR>
 nnoremap <silent> <C-G>C <Cmd>Telescope git_branches<CR>
 nnoremap <silent> <C-G>b <Cmd>Git checkout -b 
 nnoremap <silent> <C-G>B <Cmd>Git blame<CR>
-nnoremap <silent> <C-G>l <cmd>telescope git_commits<cr>
+nnoremap <silent> <C-G>l <cmd>Telescope git_commits<cr>
 nnoremap <silent> <C-G>L <cmd>Gclog<cr>
 " TODO: open selection for branch/commit to compare with
 nnoremap <silent> <C-G>d <Cmd>Git diff origin/HEAD %<CR>
+
+autocmd FileType clojure nnoremap <buffer> <leader>T
+    \ <Cmd>ConjureCljRefreshChanged<CR>
+    \ <Cmd>ConjureLogResetSoft<CR>
+    \ <Cmd>ConjureCljRunCurrentTest<CR>
+    \ <Cmd>ConjureLogBuf<CR>
+
+" =============================================================================
+" Conjure
+" =============================================================================
+"
+let g:conjure#mapping#doc_word = v:false
+let g:conjure#mapping#def_word = v:false
+" adds support for running state-flow tests
+let g:conjure#client#clojure#nrepl#test#current_form_names = ['deftest', 'defflow']
 
 " =============================================================================
 " vim-dispatch
 " =============================================================================
 
-" xelatex is required to use foreign characters
 autocmd FileType markdown let b:dispatch = 'pandoc % --pdf-engine=xelatex -o "$(dirname %)/$(basename % .md).pdf"'
 autocmd FileType tex      let b:dispatch = 'xelatex "%"'
 
 " TODO: switch it according to filetype. (md, tex, etc.) also, try to search
 " file in subdirectories.
-nnoremap <silent> `o <Cmd>!zathura "$(dirname  %)/$(basename $(basename % .md) .tex).pdf" &<CR>
 
 " =============================================================================
 " highlights and signs
@@ -398,12 +434,20 @@ sign define DapBreakpointRejected text=* texthl=Yellow
 
 autocmd BufEnter go.mod set filetype=gomod
 
-" TODO: Shortcut to run test in REPL
+
+" =============================================================================
+" zet plugin draft
+" =============================================================================
+
+let zet_dir = $ZET_DIR
+if empty(zet_dir)
+    let zet_dir = $HOME . '/zet'
+endif
+
+
 " TODO: setup spell checking
-" TODO: checkout chad-looking https://github.com/tpope/vim-dadbod
 " TODO: look at these plugins:
-" + https://www.cognitect.com/blog/2017/4/17/clojure-for-neovim-for-clojure
-" + https://github.com/Olical/conjure
+" + https://github.com/tpope/vim-dadbod
 " + https://github.com/guns/vim-sexp
 
 " For reference: https://github.com/nanotee/nvim-lua-guide

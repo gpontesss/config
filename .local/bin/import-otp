@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -o errexit -o pipefail
+
+scripts_dir="/tmp/otp-scripts"
+if [ ! -d "$scripts_dir" ]; then
+    git clone https://github.com/scito/extract_otp_secret_keys "$scripts_dir"
+fi
+
+python -m venv "$scripts_dir/venv"
+source "$scripts_dir/venv/bin/activate"
+pip install -r "$scripts_dir/requirements.txt" > /dev/null
+
+url="$1"
+codes_file="$(mktemp)"
+python "$scripts_dir/extract_otp_secret_keys.py" --json "$codes_file" <(echo "$url") > /dev/null
+
+while read -r data; do
+    secret="$(jq -r '.secret' <(echo "$data"))"
+    issuer="$(jq -r '.issuer' <(echo "$data"))"
+    account="$(jq -r '.name' <(echo "$data"))"
+    echo "inserting $account OTP secret..."
+    echo -n "Enter name for OTP entry: "
+    read -r name < /dev/tty
+    echo -e "$secret\n$secret\ny\n" \
+        | pass otp insert --force --secret --issuer "$issuer" --account "$account" "$name"
+done < <(jq --indent 0 -r '.[]' "$codes_file")
