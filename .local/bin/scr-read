@@ -4,15 +4,8 @@ set -o errexit
 
 # Lists daily Scripture reading according to the Orthodox calendar.
 
-oca_link() {
-    day="$(date +"%d")" month="$(date +"%m")" year="$(date +"%Y")"
-    echo "https://www.oca.org/readings/daily/$year/$month/$day/"
-}
-
-readings() {
-    local link="$1"
-    curl "$link" --silent | htmlq "#main section ul li a" --text
-}
+oca_link() { echo "https://www.oca.org/readings/daily/$(date +"%Y/%m/%d")/" ; }
+readings() { curl "$1" --silent | htmlq "#main section ul li a" --text ; }
 
 while getopts "olr" opt; do
     case "$opt" in
