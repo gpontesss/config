@@ -32,6 +32,7 @@ Plug 'sheerun/vim-polyglot'
 Plug 'p00f/nvim-ts-rainbow'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
+Plug 'kmonad/kmonad-vim'
 
 Plug 'voldikss/vim-floaterm'
 Plug 'ptzz/lf.vim'
@@ -433,6 +434,17 @@ sign define DapStopped text=* texthl=Green
 sign define DapBreakpointRejected text=* texthl=Yellow
 
 autocmd BufEnter go.mod set filetype=gomod
+
+function! GitHubLink()
+    let project = trim(fnamemodify(getcwd(), ':t'))
+    let user = trim(system('git remote --verbose | sed -E "s|.*:(.*)/.*|\1|" | head -n1'))
+    let commit = trim(system('git rev-parse HEAD'))
+    let file = expand("%:~:.")
+    let link = 'https://github.com/' . user . '/' . project . '/blob/' . commit . '/' . file . '#L' . line('.')
+    " TODO: this should be switched according to OS 
+    call system('echo ' .link . ' | pbcopy')
+    echo link
+endfunction
 
 
 " =============================================================================
