@@ -10,10 +10,12 @@ case "$1" in
         ;;
     # copies absolute path to select file to clipboard
     "C-n")
-        read FILENAME
-        FILENAME=$(readlink -e "$FILENAME")
-        echo -n "$FILENAME" | xclip -sel clip -i
-        notify-send "Copied file name to clipboard"
+        filenames=""
+        while read filename; do
+            filenames="\"$(readlink -e "$filename")\" $filenames"
+        done
+        echo -n "$filenames" | xclip -sel clip -i
+        notify-send "Copied filenames to clipboard"
         ;;
     # copies image to clipboard
     "C-c")
