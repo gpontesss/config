@@ -173,8 +173,8 @@ map x $$f
 map X !$f
 
 # dedicated keys for file opener actions
-map o &mimeopen $f
-map O $mimeopen --ask $f
+map o !$MIMEOPEN $f
+map O !$MIMEOPEN --ask $f
 
 map R :source ~/.config/lf/lfrc
 map D :delete
@@ -185,3 +185,4 @@ map Ex :extract
 map Ec :encrypt
 map Ed :decrypt
 map EE $$EDITOR $f
+map H set hidden!

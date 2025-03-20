@@ -128,3 +128,81 @@ if [[ "$OSTYPE" = "darwin"* ]]; then
 fi
 
 [[ -x "$(which keychain)" ]] && eval $(keychain --eval --quiet)
+
+# <-- BEGIN SECTION ADDED BY NUDEV -->
+
+# To handle non-ASCII characters
+# ==============================
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+
+# Programs
+# ========
+
+# Default editor
+# --------------
+export EDITOR="subl -w -n"
+
+# Homebrew
+# --------
+if command -v brew >/dev/null; then
+  HOMEBREW_PREFIX="$(brew --prefix)"
+  export PATH="${HOMEBREW_PREFIX}/sbin:${PATH}"
+elif [[ -f "/opt/homebrew/bin/brew" && $(/usr/bin/uname -sm) == "Darwin arm64" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+  export PATH="${HOMEBREW_PREFIX}/sbin:${PATH}"
+fi
+
+# SDKMAN
+# ------
+if [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" && $(/usr/bin/uname -sm) == "Darwin arm64" ]]; then
+  source "$HOME/.sdkman/bin/sdkman-init.sh"
+fi
+
+# jEnv
+# ----
+if command -v jenv >/dev/null; then
+  export PATH="${HOME}/.jenv/bin:${PATH}"
+  eval "$(jenv init -)"
+fi
+
+# rbenv
+# -----
+if command -v rbenv >/dev/null; then eval "$(rbenv init -)"; fi
+
+# node
+# ----
+# https://nodejs.org/api/modules.html
+if command -v node >/dev/null && [[ -n "$HOMEBREW_PREFIX" ]]; then
+  export NODE_PATH="${HOMEBREW_PREFIX}/lib/node_modules"
+fi
+
+# Nu
+# --
+export NU_HOME="/Users/guilherme.pontes1/dev/nu"
+export NUCLI_HOME="${NU_HOME}/nucli"
+export PATH="${NUCLI_HOME}:${PATH}"
+export NU_COUNTRY="br"
+alias dev='cd ${NU_HOME}'
+
+
+# Autocomplete
+# ============
+
+# https://docs.brew.sh/Shell-Completion
+if command -v brew >/dev/null && [[ $(ps -p "$$" -o comm=) == *bash ]]; then
+
+  # https://formulae.brew.sh/formula/bash-completion@2
+  if [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]]; then
+    . "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" || :
+  fi
+
+fi
+
+# nucli
+if [[ -r "${NUCLI_HOME}/nu.bashcompletion" ]]; then
+  . "${NUCLI_HOME}/nu.bashcompletion" || :
+fi
+
+# <-- END SECTION ADDED BY NUDEV -->

@@ -4,6 +4,8 @@ Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/playground'
 
+" DAP plugins (Debugging Adapter Protocol)
+
 Plug 'theHamsta/nvim-dap-virtual-text'
 Plug 'mfussenegger/nvim-dap'
 Plug 'leoluz/nvim-dap-go'
@@ -49,10 +51,9 @@ Plug 'benmills/vimux'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 
-Plug 'tpope/vim-salve'
-Plug 'Olical/conjure'
 Plug 'eraserhd/parinfer-rust', {'do': 'cargo build --release'}
 Plug 'Olical/conjure'
+Plug 'clojure-vim/vim-jack-in'
 
 call plug#end()
 
@@ -65,7 +66,9 @@ set nocompatible " required by vim-polyglot (and probably other plugins too)
 lua <<EOF
 require('telescope').setup({
   defaults = {
-    layout_strategy = 'vertical'
+    layout_strategy = 'vertical',
+
+file_ignore_patterns = { "^%.git/", "^node_modules/" }
   },
   ["ui-select"] = {
     require("telescope.themes").get_dropdown()
@@ -87,9 +90,13 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities(
 require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
 require('lspconfig').gopls.setup{ capabilities = capabilities }
 require('lspconfig').vimls.setup{ capabilities = capabilities }
-require('lspconfig').pylsp.setup{}
+require('lspconfig').pylyzer.setup{}
 require('lspconfig').texlab.setup{ capabilities = capabilities }
 require('lspconfig').marksman.setup{ capabilities = capabilities }
+require('lspconfig').dartls.setup{ capabilities = capabilities }
+require('lspconfig').cssls.setup{ capabilities = capabilities }
+require('lspconfig').tsserver.setup{ capabilities = capabilities }
+
 
 require('nvim-treesitter.configs').setup {
   highlight = {
@@ -121,9 +128,11 @@ EOF
 " set foldmethod=expr
 " set foldexpr=nvim_treesitter#foldexpr()
 
-autocmd BufWritePre *.clj lua vim.lsp.buf.formatting()
-autocmd BufWritePre *.py  lua vim.lsp.buf.formatting()
-autocmd BufWritePre *.go  lua vim.lsp.buf.formatting()
+" Only register autocmds after LSP is lodaed
+autocmd BufWritePre *.clj  lua vim.lsp.buf.format()
+" autocmd BufWritePre *.py   lua vim.lsp.buf.formatting()
+autocmd BufWritePre *.go   lua vim.lsp.buf.format()
+autocmd BufWritePre *.dart lua vim.lsp.buf.formatting()
 
 lua <<EOF
 local cmp = require('cmp')
@@ -188,6 +197,27 @@ cmp.setup.cmdline(':', {
 EOF
 
 " =============================================================================
+" Functions
+" =============================================================================
+
+function! s:refresh_lightline()
+    call lightline#init()
+    call lightline#colorscheme()
+    call lightline#update()
+endfunction
+
+function! GitHubLink()
+    let project = trim(fnamemodify(getcwd(), ':t'))
+    let user = trim(system('git remote --verbose | sed -E "s|.*:(.*)/.*|\1|" | head -n1'))
+    let commit = trim(system('git rev-parse HEAD'))
+    let file = expand("%:~:.")
+    let link = 'https://github.com/' . user . '/' . project . '/blob/' . commit . '/' . file . '#L' . line('.')
+    " TODO: this should be switched according to OS 
+    call system('echo ' .link . ' | pbcopy')
+    echo link
+endfunction
+
+" =============================================================================
 " buffer looks and misc. UI
 " =============================================================================
 
@@ -242,12 +272,6 @@ if !has('nvim') | set ttymouse=xterm2 | endif
 " @@@ Lightline @@@
 set noshowmode
 if !has('gui_running') | set t_Co=256 | endif
-
-function! s:refresh_lightline()
-    call lightline#init()
-    call lightline#colorscheme()
-    call lightline#update()
-endfunction
 
 let g:lightline = {
 \   'colorscheme': 'gruvbox_material',
@@ -304,8 +328,11 @@ nmap <silent> <leader>x /```shell<CR>Nj<S-V>/```<CR>k:!bash<CR>
 
 " Invokes make
 " TODO: Only works for mac; switch definition between OSes
-nnoremap <silent> `o <Cmd>!open "$(dirname %)/$(basename % .md).pdf"<CR>
-nnoremap <silent> `o <Cmd>!zathura "$(dirname  %)/$(basename $(basename % .md) .tex).pdf" &<CR>
+if has("mac")
+    nnoremap <silent> `o <Cmd>!open "$(dirname %)/$(basename % .md).pdf"<CR>
+else
+    nnoremap <silent> `o <Cmd>!zathura "$(dirname  %)/$(basename $(basename % .md) .tex).pdf" &<CR>
+endif
 nmap `d <Cmd>Dispatch!<CR>
 nmap `m <Cmd>Dispatch!<CR>
 nmap `M <Cmd>Make!<CR>
@@ -367,6 +394,7 @@ nmap <silent> <F2>c <Cmd>lua require("dap").continue()<CR>
 nmap <silent> <F2>C <Cmd>lua require("dap").close()<CR>
 nmap <silent> <F2>r <Cmd>lua require("dap").repl.toggle()<CR>
 
+nnoremap <silent> <C-g>l <Cmd>call GitHubLink()<CR>
 nnoremap <silent> <C-g>s <Cmd>Telescope git_status<CR>
 nnoremap <silent> <c-g>a <cmd>Git add %<cr>
 nnoremap <silent> <c-g>u <cmd>Git diff --name-only --diff-filter=U --relative<cr>
@@ -378,8 +406,8 @@ nnoremap <silent> <C-G>s <Cmd>Telescope git_status<CR>
 nnoremap <silent> <C-G>C <Cmd>Telescope git_branches<CR>
 nnoremap <silent> <C-G>b <Cmd>Git checkout -b 
 nnoremap <silent> <C-G>B <Cmd>Git blame<CR>
-nnoremap <silent> <C-G>l <cmd>Telescope git_commits<cr>
-nnoremap <silent> <C-G>L <cmd>Gclog<cr>
+" nnoremap <silent> <C-G>l <cmd>Telescope git_commits<cr>
+" nnoremap <silent> <C-G>L <cmd>Gclog<cr>
 " TODO: open selection for branch/commit to compare with
 nnoremap <silent> <C-G>d <Cmd>Git diff origin/HEAD %<CR>
 
@@ -434,28 +462,6 @@ sign define DapStopped text=* texthl=Green
 sign define DapBreakpointRejected text=* texthl=Yellow
 
 autocmd BufEnter go.mod set filetype=gomod
-
-function! GitHubLink()
-    let project = trim(fnamemodify(getcwd(), ':t'))
-    let user = trim(system('git remote --verbose | sed -E "s|.*:(.*)/.*|\1|" | head -n1'))
-    let commit = trim(system('git rev-parse HEAD'))
-    let file = expand("%:~:.")
-    let link = 'https://github.com/' . user . '/' . project . '/blob/' . commit . '/' . file . '#L' . line('.')
-    " TODO: this should be switched according to OS 
-    call system('echo ' .link . ' | pbcopy')
-    echo link
-endfunction
-
-
-" =============================================================================
-" zet plugin draft
-" =============================================================================
-
-let zet_dir = $ZET_DIR
-if empty(zet_dir)
-    let zet_dir = $HOME . '/zet'
-endif
-
 
 " TODO: setup spell checking
 " TODO: look at these plugins:
