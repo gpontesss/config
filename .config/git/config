@@ -9,11 +9,11 @@
 	dog = log --decorate --oneline --graph
 	s = status --short
 	curb = branch --show-current
-    p = pull -p
+	p = pull -p
 	c = commit --verbose
 	ca = commit --verbose --amend
 	ck = ! git checkout "$(git branch | grep -v '*' | fzf | xargs)"
-    ckb = checkout -b
+    	ckb = checkout -b
 
 [merge]
   tool = vimdiff

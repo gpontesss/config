@@ -178,18 +178,6 @@ if command -v node >/dev/null && [[ -n "$HOMEBREW_PREFIX" ]]; then
   export NODE_PATH="${HOMEBREW_PREFIX}/lib/node_modules"
 fi
 
-# Nu
-# --
-export NU_HOME="/Users/guilherme.pontes1/dev/nu"
-export NUCLI_HOME="${NU_HOME}/nucli"
-export PATH="${NUCLI_HOME}:${PATH}"
-export NU_COUNTRY="br"
-alias dev='cd ${NU_HOME}'
-
-
-# Autocomplete
-# ============
-
 # https://docs.brew.sh/Shell-Completion
 if command -v brew >/dev/null && [[ $(ps -p "$$" -o comm=) == *bash ]]; then
 
@@ -199,10 +187,3 @@ if command -v brew >/dev/null && [[ $(ps -p "$$" -o comm=) == *bash ]]; then
   fi
 
 fi
-
-# nucli
-if [[ -r "${NUCLI_HOME}/nu.bashcompletion" ]]; then
-  . "${NUCLI_HOME}/nu.bashcompletion" || :
-fi
-
-# <-- END SECTION ADDED BY NUDEV -->
