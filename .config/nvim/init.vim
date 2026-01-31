@@ -2,14 +2,14 @@ call plug#begin('~/.local/share/vim/plugged')
 
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'nvim-treesitter/playground'
+" Plug 'nvim-treesitter/playground'
 
 " DAP plugins (Debugging Adapter Protocol)
 
-Plug 'theHamsta/nvim-dap-virtual-text'
-Plug 'mfussenegger/nvim-dap'
-Plug 'leoluz/nvim-dap-go'
-Plug 'rcarriga/nvim-dap-ui'
+" Plug 'theHamsta/nvim-dap-virtual-text'
+" Plug 'mfussenegger/nvim-dap'
+" Plug 'leoluz/nvim-dap-go'
+" Plug 'rcarriga/nvim-dap-ui'
 
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
@@ -18,7 +18,7 @@ Plug 'hrsh7th/cmp-cmdline'
 Plug 'andersevenrud/cmp-tmux'
 Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
 Plug 'hrsh7th/cmp-emoji'
-Plug 'rcarriga/cmp-dap'
+" Plug 'rcarriga/cmp-dap'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'SirVer/ultisnips'
 
@@ -31,7 +31,7 @@ Plug 'itchyny/lightline.vim'
 Plug 'sainnhe/gruvbox-material'
 Plug 'frazrepo/vim-rainbow'
 Plug 'sheerun/vim-polyglot'
-Plug 'p00f/nvim-ts-rainbow'
+" Plug 'p00f/nvim-ts-rainbow'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'kmonad/kmonad-vim'
@@ -78,27 +78,15 @@ require('telescope').load_extension('fzf')
 EOF
 
 lua <<EOF
-require('dapui').setup()
-require("nvim-dap-virtual-text").setup()
-require('dap-go').setup()
-EOF
-
-lua <<EOF
 local capabilities = require('cmp_nvim_lsp').default_capabilities(
     vim.lsp.protocol.make_client_capabilities())
 
-require('lspconfig').clojure_lsp.setup{ capabilities = capabilities }
-require('lspconfig').gopls.setup{ capabilities = capabilities }
-require('lspconfig').vimls.setup{ capabilities = capabilities }
-require('lspconfig').pylyzer.setup{}
-require('lspconfig').texlab.setup{ capabilities = capabilities }
-require('lspconfig').marksman.setup{ capabilities = capabilities }
-require('lspconfig').dartls.setup{ capabilities = capabilities }
-require('lspconfig').cssls.setup{ capabilities = capabilities }
-require('lspconfig').tsserver.setup{ capabilities = capabilities }
+vim.lsp.config("clojure_lsp", { capabilities = capabilities })
+vim.lsp.config("gopls",       { capabilities = capabilities })
+vim.lsp.config("vimls",       { capabilities = capabilities })
+vim.lsp.config("marksman",    { capabilities = capabilities })
 
-
-require('nvim-treesitter.configs').setup {
+require('nvim-treesitter.config').setup {
   highlight = {
     enable = true,
     -- Setting this to true will run `:h syntax` and tree-sitter at the same

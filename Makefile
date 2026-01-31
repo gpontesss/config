@@ -1,6 +1,6 @@
 SCRIPT_DST = /usr/local/bin
 
-DOTS_SRC = .config .local .tmux.conf .profile .bashrc
+DOTS_SRC = .config .local .tmux.conf .profile .bashrc .bash_profile
 DOTS_DST = $(HOME)
 DOTS_TARGETS = $(addprefix $(DOTS_DST)/,$(shell find $(DOTS_SRC) -type f))
 
